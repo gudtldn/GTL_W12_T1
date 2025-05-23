@@ -76,9 +76,12 @@
         %(AdditionalDependencies)
       </AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
 
-  <!-- DEBUG specific settings (applies to Debug|x64) -->
+  <!-- DEBUG specific settings -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -86,7 +89,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
 
-  <!-- RELEASE specific settings (applies to Release|x64) -->
+  <!-- RELEASE specific settings -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -98,9 +101,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <FxCompile> <!-- Moved FxCompile to Release|x64, assuming it's only for release -->
-      <ShaderModel>5.0</ShaderModel>
-    </FxCompile>
   </ItemDefinitionGroup>
 
   <!-- 라이브러리 복사 -->
