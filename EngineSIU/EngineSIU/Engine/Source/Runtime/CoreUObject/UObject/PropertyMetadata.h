@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include "Object.h"
 #include "Container/String.h"
 #include "Misc/Optional.h"
 #include "Templates/Function.h"
+
+class UObject;
 
 
 struct FPropertyMetadata
@@ -15,25 +16,6 @@ struct FPropertyMetadata
 
     // 툴팁
     TOptional<FString> ToolTip = {};
-
-    /* Ex
-     * UPROPERTY(EditAnywhere, Category = "Move")
-     * bool bCanMove = true; 
-     * UPROPERTY(EditAnywhere, Category = "Move", meta = (EditCondition = "bCanMove"))
-     * int MoveSpeed = 100;
-     * // 숨김 옵션
-     * UPROPERTY(EditAnywhere, Category = "Move", meta = (EditCondition = "bCanMove", EditConditionHides))
-     * int MoveSpeed = 100;
-     * // Enum
-     * UENUM(BlueprintType)
-     * enum class ETestType : uint8 { A_Type, B_Type };
-     * UPROPERTY(EditAnywhere, Category = "Move")
-     * ETestType TestType = ETestType::A_Type;
-     * UPROPERTY(EditAnywhere, Category = "Move", meta = (EditCondition = "TestType == ETestType::A_Type"))
-     * float A_Speed = 10.0f;
-     * UPROPERTY(EditAnywhere, Category = "Move", meta = (EditCondition = "TestType == ETestType::B_Type"))
-     * float B_Speed = 1.0f;
-     */
 
     // 특정 Property의 값에 따라서 프로퍼티의 에디터 노출 및 편집 가능 여부를 제어
     TFunction<bool(UObject*)> EditCondition = {};

@@ -101,7 +101,7 @@ void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, 
     }
 
     // 조건에 따라서 표시할지 말지 결정
-    if (Metadata.EditCondition.IsBound() && !Metadata.EditCondition(OwnerObject))
+    if (Metadata.EditCondition && !Metadata.EditCondition(OwnerObject))
     {
         return;
     }
