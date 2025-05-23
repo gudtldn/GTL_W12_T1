@@ -718,9 +718,6 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\Stats.h">
       <Filter>Engine\Source\Runtime\Core\Stats</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Source\Runtime\Core\Traits\IsCharType.h">
-      <Filter>Engine\Source\Runtime\Core\Traits</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h">
       <Filter>Engine\Source\Runtime\CoreUObject\Template</Filter>
     </ClInclude>
@@ -1309,12 +1306,6 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\IRenderPass.h">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\LightHeatMapRenderPass.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\LightHeatMapRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Renderer\LineRenderPass.cpp">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClCompile>
@@ -1358,18 +1349,6 @@
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClCompile>
     <ClInclude Include="Engine\Source\Runtime\Renderer\SlateRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPass.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.h">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Renderer\TileLightCullingPass.cpp">
@@ -1652,13 +1631,10 @@
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPass.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPassBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ReferenceSkeleton.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Transform.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.cpp" />
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\World\SkeletalViewerWorld.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationAsset.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.cpp" />
@@ -1678,6 +1654,46 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotifyState.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.cpp" />
+    <ClCompile Include="Engine\Source\Contents\AnimInstance\MyAnimInstance.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ParticleViewerPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\SkeletalMeshViewerPanel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyDisplay.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionFloat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionVector.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorOverLife.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifeTime.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSize.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSizeBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawn.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawnBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\SubUV\ParticleModuleSubUV.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\SubUV\ParticleModuleSUbUVBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ParticleHelper.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleSystemRender.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\World\ParticleViewerWorld.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ParticleMeshRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ParticleSpriteRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPassBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\OpaqueRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\TranslucentRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocity.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Location\ParticleModuleLocation.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Location\ParticleModuleLocationBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAcceleration.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAccelerationBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1687,7 +1703,6 @@
     <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
     <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
     <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
-    <FxCompile Include="Shaders\LightPBR.hlsl" />
     <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
   </ItemGroup>
   <ItemGroup>
@@ -1704,14 +1719,11 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\NumericLimits.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPass.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPassBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ReferenceSkeleton.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Axis.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Transform.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.h" />
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\World\SkeletalViewerWorld.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationAsset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.h" />
@@ -1734,36 +1746,91 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotifyState.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.h" />
+    <ClInclude Include="Engine\Source\Contents\AnimInstance\MyAnimInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyEvent.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ParticleViewerPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\SkeletalMeshViewerPanel.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyMetadata.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Misc\Optional.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\Function.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsArray.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsCharType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\TemplateUtilities.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\TypeUtilities.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionVector.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorOverLife.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifeTime.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSpriteEmitter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSize.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSizeBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawn.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawnBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\SubUV\ParticleModuleSubUV.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\SubUV\ParticleModuleSUbUVBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\World\ParticleViewerWorld.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ParticleMeshRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ParticleSpriteRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPassBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\OpaqueRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\TranslucentRenderPass.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_all.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_containers.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_flags.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_format.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_fuse.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_iostream.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_switch.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\include\magic_enum\magic_enum_utility.hpp" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocity.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Location\ParticleModuleLocation.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Location\ParticleModuleLocationBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAcceleration.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAccelerationBase.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />
     <None Include="Shaders\ComputeDefine.hlsl" />
-    <None Include="Shaders\DepthBufferPixelShader.hlsl" />
-    <None Include="Shaders\DepthBufferVertexShader.hlsl" />
     <None Include="Shaders\EditorShader.hlsl" />
-    <None Include="Shaders\FogQuadPixelShader.hlsl" />
     <None Include="Shaders\FogShader.hlsl" />
     <None Include="Shaders\GizmoPixelShader.hlsl" />
-    <None Include="Shaders\GizmoVertexShader.hlsl" />
     <None Include="Shaders\Light.hlsl" />
-    <None Include="Shaders\PixelBillBoardShader.hlsl" />
     <None Include="Shaders\PostProcessCompositingShader.hlsl" />
     <None Include="Shaders\ShaderLine.hlsl" />
     <None Include="Shaders\ShaderRegisters.hlsl" />
-    <None Include="Shaders\ShaderW0.hlsl" />
     <None Include="Shaders\SlateShader.hlsl" />
-    <None Include="Shaders\StaticMeshPixelShader.hlsl" />
-    <None Include="Shaders\StaticMeshPixelShaderDepth.hlsl" />
-    <None Include="Shaders\StaticMeshPixelShaderWorldNormal.hlsl" />
     <None Include="Shaders\StaticMeshVertexShader.hlsl" />
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
-    <None Include="Shaders\VertexBillBoardShader.hlsl" />
     <None Include="Shaders\EditorShaderConstants.hlsli" />
-    <None Include="Shaders\ShaderConstants.hlsli" />
     <None Include="cpp.hint" />
     <None Include="Shaders\CameraEffectShader.hlsl" />
-    <None Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
-    <None Include="Shaders\SkeletalMeshPixelShader.hlsl" />
     <None Include="Shaders\SkeletalMeshVertexShader.hlsl" />
+    <None Include="Shaders\ParticleSpriteVertexShader.hlsl" />
+    <None Include="Shaders\ParticleSpritePixelShader.hlsl" />
+    <None Include="Shaders\ParticleMeshVertexShader.hlsl" />
+    <None Include="Shaders\ParticleMeshPixelShader.hlsl" />
+    <None Include="Shaders\BillBoardPixelShader.hlsl" />
+    <None Include="Shaders\CommonMeshPixelShader.hlsl" />
+    <None Include="Shaders\CommonMeshPixelShaderDepth.hlsl" />
+    <None Include="Shaders\CommonMeshPixelShaderWorldNormal.hlsl" />
+    <None Include="Shaders\BillBoardVertexShader.hlsl" />
+    <None Include="Shaders\CommonMeshPixelShaderWorldTangent.hlsl" />
   </ItemGroup>
 </Project>
