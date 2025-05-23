@@ -1,6 +1,8 @@
 ﻿#pragma once
+#include "Object.h"
 #include "Container/String.h"
 #include "Misc/Optional.h"
+#include "Templates/Function.h"
 
 
 struct FPropertyMetadata
@@ -32,8 +34,9 @@ struct FPropertyMetadata
      * UPROPERTY(EditAnywhere, Category = "Move", meta = (EditCondition = "TestType == ETestType::B_Type"))
      * float B_Speed = 1.0f;
      */
+
     // 특정 Property의 값에 따라서 프로퍼티의 에디터 노출 및 편집 가능 여부를 제어
-    // TOptional<?> EditCondition = {};
+    TFunction<bool(UObject*)> EditCondition = {};
 
     // DisplayAfter / DisplayPriority: 에디터에서 표시 순서 제어
 
