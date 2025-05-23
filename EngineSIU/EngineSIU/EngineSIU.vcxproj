@@ -22,6 +22,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <Platform>x64</Platform>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -31,10 +32,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -44,7 +43,7 @@
     <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
 
-  <!-- COMMON ItemDefinitionGroup for settings applicable to ALL configurations and platforms -->
+  <!-- COMMON ItemDefinitionGroup for ALL x64 configurations -->
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -54,15 +53,28 @@
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include;$(ProjectDir)Engine\Source\ThirdParty\PhysX\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader> <!-- Assuming NotUsing for all -->
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
+      <PreprocessorDefinitions>FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <!-- Common AdditionalLibraryDirectories. Ensure paths are valid for both Win32/x64 or use conditions -->
-      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <!-- Common Dependencies. Platform/Config specific ones will be added below -->
-      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libxml2.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\x64\$(Configuration);
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\x64;
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);
+        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration);
+        %(AdditionalLibraryDirectories)
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libxml2.lib;zlib.lib;
+        libfbxsdk.lib;
+        PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXVehicle_static_64.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 
@@ -70,7 +82,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!-- RuntimeLibrary is often MultiThreadedDebugDLL (/MDd) for Debug -->
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
 
@@ -80,31 +92,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!-- RuntimeLibrary is often MultiThreadedDLL (/MD) for Release -->
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-  </ItemDefinitionGroup>
-
-  <!-- X64 Platform specific settings (applies to Debug|x64 and Release|x64) -->
-  <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
-    <ClCompile>
-      <PreprocessorDefinitions>FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary Condition="'$(Configuration)'=='Debug'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)'=='Release'">MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem> <!-- If x64 is always Windows GUI, otherwise Console -->
-      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfbxsdk.lib;PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-
-  <!-- FxCompile settings (if common, can be here, otherwise per config/platform) -->
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <FxCompile>
+    <FxCompile> <!-- Moved FxCompile to Release|x64, assuming it's only for release -->
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
