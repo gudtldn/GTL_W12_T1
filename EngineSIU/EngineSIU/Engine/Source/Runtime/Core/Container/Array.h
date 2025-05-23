@@ -670,7 +670,7 @@ template <typename T, typename AllocatorType>
 bool TArray<T, AllocatorType>::IsValidIndex(uint32 ElementIndex) const
 {
     // uint32라서 0미만은 검사 안함
-    return ElementIndex < Num();
+    return ElementIndex < static_cast<uint32>(Num());
 }
 
 template <typename T, typename AllocatorType>
