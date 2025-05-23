@@ -599,6 +599,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\StatDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\Stats.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\Function.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsArray.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsCharType.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Templates\TemplateUtilities.h" />
