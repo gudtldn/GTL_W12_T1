@@ -24,7 +24,7 @@ private:
         ICallable& operator=(ICallable&&) = default;
 
         virtual ReturnType Invoke(ParamsType...) = 0;
-        virtual ICallable* Clone() const = 0;
+        [[nodiscard]] virtual ICallable* Clone() const = 0;
     };
 
     // 함수 포인터를 저장하는 Callable
