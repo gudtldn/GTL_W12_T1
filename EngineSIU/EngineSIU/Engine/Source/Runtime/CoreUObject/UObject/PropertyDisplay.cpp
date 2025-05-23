@@ -100,6 +100,12 @@ void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, 
         return;
     }
 
+    // 조건에 따라서 표시할지 말지 결정
+    if (Metadata.EditCondition.IsBound() && !Metadata.EditCondition(OwnerObject))
+    {
+        return;
+    }
+
     DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 }
 
