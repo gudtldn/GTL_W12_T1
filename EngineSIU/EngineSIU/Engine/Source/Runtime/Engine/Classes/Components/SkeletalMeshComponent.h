@@ -8,7 +8,7 @@
 
 class UAnimSequence;
 class USkeletalMesh;
-class FAnimNotifyEvent;
+struct FAnimNotifyEvent;
 class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
