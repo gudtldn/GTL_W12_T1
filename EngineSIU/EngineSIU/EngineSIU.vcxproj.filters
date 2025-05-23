@@ -1700,12 +1700,6 @@
     <Natvis Include="Engine\Source\ThirdParty\sol2\sol2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
-    <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
-    <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
-    <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\SkeletalMeshAsset.h" />
@@ -1832,5 +1826,9 @@
     <None Include="Shaders\CommonMeshPixelShaderWorldNormal.hlsl" />
     <None Include="Shaders\BillBoardVertexShader.hlsl" />
     <None Include="Shaders\CommonMeshPixelShaderWorldTangent.hlsl" />
+    <None Include="Shaders\CascadedShadowMap.hlsl" />
+    <None Include="Shaders\DepthCubeMapVS.hlsl" />
+    <None Include="Shaders\DepthOnlyVS.hlsl" />
+    <None Include="Shaders\PointLightCubemapGS.hlsl" />
   </ItemGroup>
 </Project>

@@ -42,7 +42,6 @@
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
-
   <!-- COMMON ItemDefinitionGroup for ALL x64 configurations -->
   <ItemDefinitionGroup>
     <ClCompile>
@@ -60,27 +59,13 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\x64\$(Configuration);
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\x64;
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);
-        $(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration);
-        %(AdditionalLibraryDirectories)
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-        DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libxml2.lib;zlib.lib;
-        libfbxsdk.lib;
-        PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXVehicle_static_64.lib;
-        %(AdditionalDependencies)
-      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\x64;$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libxml2.lib;zlib.lib;libfbxsdk.lib;PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
-
   <!-- DEBUG specific settings -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
@@ -88,7 +73,6 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
-
   <!-- RELEASE specific settings -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -100,13 +84,22 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <UseDynamicDebugging Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</UseDynamicDebugging>
     </Link>
   </ItemDefinitionGroup>
-
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;PX_PHYSX_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;PX_PHYSX_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <!-- 라이브러리 복사 -->
   <Target Name="Copy Library Tasks" AfterTargets="Build">
     <Message Text="--- Copy Library Tasks Started ---" Importance="high" />
-
     <!-- Lua 파일 복사 -->
     <ItemGroup>
       <LuaFiles Include="$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration)\lua.dll" />
@@ -114,7 +107,6 @@
     </ItemGroup>
     <Copy SourceFiles="@(LuaFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(Identity)')" />
     <Message Text="Copied Lua files: @(LuaFiles)" Importance="high" Condition="'@(LuaFiles)' != ''" />
-
     <!-- FMOD 파일 복사 -->
     <ItemGroup>
       <FmodFiles Include="$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmod.dll" />
@@ -122,14 +114,12 @@
     </ItemGroup>
     <Copy SourceFiles="@(FmodFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(Identity)')" />
     <Message Text="Copied FMOD files: @(FmodFiles)" Importance="high" Condition="'@(FmodFiles)' != ''" />
-
     <!-- FBX SDK 파일 복사 -->
     <ItemGroup>
       <FBXFiles Include="$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration)\libfbxsdk.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(FBXFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(Identity)')" />
     <Message Text="Copied FBX SDK files: @(FBXFiles)" Importance="high" Condition="'@(FBXFiles)' != ''" />
-
     <!-- PhysX DLL 파일 복사 -->
     <ItemGroup>
       <PhysXDLLFiles Include="$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration)\PhysXDevice64.dll" />
@@ -137,14 +127,12 @@
     </ItemGroup>
     <Copy SourceFiles="@(PhysXDLLFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(Identity)')" />
     <Message Text="Copied PhysX DLL files: @(PhysXDLLFiles)" Importance="high" Condition="'@(PhysXDLLFiles)' != ''" />
-
     <!-- PhysX PDB 파일 복사 -->
     <ItemGroup Condition="'$(Configuration)'=='Debug'">
       <PhysXPDBFiles Include="$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\Lib\$(Configuration)\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(PhysXPDBFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(Configuration)'=='Debug' And Exists('%(Identity)') And '@(PhysXPDBFiles)' != ''" />
     <Message Text="Copied PhysX PDB files for Debug: @(PhysXPDBFiles)" Importance="high" Condition="'$(Configuration)'=='Debug' And '@(PhysXPDBFiles)' != ''" />
-
     <Message Text="--- Copy Library Tasks Finished ---" Importance="high" />
   </Target>
   <ItemGroup>
