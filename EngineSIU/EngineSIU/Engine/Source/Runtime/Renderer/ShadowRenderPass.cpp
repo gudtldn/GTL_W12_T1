@@ -25,9 +25,6 @@ class UStaticMeshComponent;
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
-
-    // DepthOnly Vertex Shader
-    CreateShader();
 }
 
 void FShadowRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
@@ -321,7 +318,7 @@ void FShadowRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClien
 {
 }
 
-void FShadowRenderPass::CreateShader()
+void FShadowRenderPass::CreateResource()
 {
     HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
     if (FAILED(hr))

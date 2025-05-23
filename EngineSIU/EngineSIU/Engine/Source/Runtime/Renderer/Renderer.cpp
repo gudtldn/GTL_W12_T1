@@ -12,8 +12,6 @@
 #include "GizmoRenderPass.h"
 #include "UpdateLightBufferPass.h"
 #include "LineRenderPass.h"
-#include "FogRenderPass.h"
-#include "CameraEffectRenderPass.h"
 #include "SlateRenderPass.h"
 #include "EditorRenderPass.h"
 #include "DepthPrePass.h"
@@ -24,7 +22,7 @@
 #include "ParticleHelper.h"
 #include "ParticleSpriteRenderPass.h"
 #include "ParticleMeshRenderPass.h"
-#include "PostProcessCompositingPass.h"
+#include "PostProcess/PostProcessRenderPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
 #include "UnrealClient.h"
@@ -56,8 +54,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
     UpdateLightBufferPass = AddRenderPass<FUpdateLightBufferPass>();
     LineRenderPass = AddRenderPass<FLineRenderPass>();
-    FogRenderPass = AddRenderPass<FFogRenderPass>();
-    CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
     EditorRenderPass = AddRenderPass<FEditorRenderPass>();
     TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
 
@@ -66,9 +62,10 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     
     DepthPrePass = AddRenderPass<FDepthPrePass>();
     TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
+
+    PostProcessRenderPass = AddRenderPass<FPostProcessRenderPass>();
     
     CompositingPass = AddRenderPass<FCompositingPass>();
-    PostProcessCompositingPass = AddRenderPass<FPostProcessCompositingPass>();
     SlateRenderPass = AddRenderPass<FSlateRenderPass>();
 
     assert(ShadowManager->Initialize(Graphics, BufferManager) && "ShadowManager Initialize Failed");
@@ -131,9 +128,6 @@ void FRenderer::CreateConstantBuffers()
 
     UINT ViewModeBufferSize = sizeof(FViewModeConstants);
     BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, ViewModeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT ScreenConstantsBufferSize = sizeof(FScreenConstants);
-    BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, ScreenConstantsBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     UINT FogConstantBufferSize = sizeof(FFogConstants);
     BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, FogConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
@@ -384,7 +378,11 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
         }
     }
     
-    // TODO: 이 시점에서 씬 뎁스 스텐실 버퍼를 복사해두면, 에디터 요소가 없는 순수한 뎁스 버퍼를 확보할 수 있음.
+    // 에디터 요소가 없는 순수한 뎁스 버퍼 확보
+    Graphics->DeviceContext->CopyResource(
+        Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_ScenePure)->Texture2D,
+        Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->Texture2D
+    );
 }
 
 void FRenderer::RenderEditorDepthElement(const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -458,33 +456,11 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
 
 void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
-    const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
     if (ViewMode < EViewModeIndex::VMI_Unlit)
     {
-        if (ShowFlag & EEngineShowFlags::SF_Fog)
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
-            FogRenderPass->Render(Viewport);
-        }
-
-        // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
-
-        /**
-         * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
-         *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
-         */
-        {
-            CameraEffectRenderPass->Render(Viewport);
-        }
-
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
-            PostProcessCompositingPass->Render(Viewport);
-        }
+        PostProcessRenderPass->Render(Viewport);
     }
 }
 

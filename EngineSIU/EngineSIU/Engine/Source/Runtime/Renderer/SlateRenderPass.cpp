@@ -11,13 +11,7 @@
 
 void FSlateRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
-
-    CreateShader();
-    CreateBuffer();
-    CreateSampler();
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 }
 
 void FSlateRenderPass::PrepareRenderArr()
@@ -100,7 +94,7 @@ void FSlateRenderPass::ClearRenderArr()
 {
 }
 
-void FSlateRenderPass::CreateShader()
+void FSlateRenderPass::CreateResource()
 {
     HRESULT Result = ShaderManager->AddVertexShader(L"SlateShader", L"Shaders/SlateShader.hlsl", "mainVS");
     if (FAILED(Result))
@@ -113,6 +107,9 @@ void FSlateRenderPass::CreateShader()
     {
         return;
     }
+    
+    CreateBuffer();
+    CreateSampler();
 }
 
 void FSlateRenderPass::CreateBuffer()

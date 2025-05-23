@@ -524,14 +524,6 @@ struct FBufferInfo
     FIndexInfo IndexInfo;
 };
 
-struct FScreenConstants
-{
-    FVector2D ScreenSize;   // 화면 전체 크기 (w, h)
-    FVector2D UVOffset;     // 뷰포트 시작 UV (x/sw, y/sh)
-    FVector2D UVScale;      // 뷰포트 크기 비율 (w/sw, h/sh)
-    FVector2D Padding;      // 정렬용 (사용 안 해도 무방)
-};
-
 struct FFogConstants
 {
     FLinearColor FogColor;
@@ -555,6 +547,6 @@ struct FGammaConstants
 
 struct FCPUSkinningConstants
 {
-    int bCPUSKinning;
+    int bCPUSkinning;
     FVector Padding;
 };

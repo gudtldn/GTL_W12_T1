@@ -49,7 +49,10 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     const EResourceType ResourceType = EResourceType::ERT_Compositing; 
     FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
 
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Scene)->SRV);
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
+
+    // TODO: 테스트 끝난 후에 바인딩 할 리소스 타입 ERT_Scene으로 되돌리기
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_DownSample2x, 2)->SRV);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PostProcess), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_EditorOverlay), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Editor)->SRV);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_CameraEffect), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_CameraEffect)->SRV);

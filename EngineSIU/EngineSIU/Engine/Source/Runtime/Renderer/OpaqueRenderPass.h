@@ -30,14 +30,14 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
     void UpdateLitUnlitConstant(int32 IsLit) const;
-
-    void CreateShader();
     
     void ChangeViewMode(EViewModeIndex ViewMode);
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    virtual void CreateResource() override;
 
     void PrepareStaticMesh();
     void RenderStaticMesh(const std::shared_ptr<FEditorViewportClient>& Viewport);

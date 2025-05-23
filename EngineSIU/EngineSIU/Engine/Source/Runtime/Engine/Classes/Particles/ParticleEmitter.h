@@ -47,7 +47,7 @@ public:
     
     int32 ParticleSize;
 
-    EDynamicEmitterType eEmitterType;
+    EDynamicEmitterType EmitterType;
 
 private:
     TArray<UParticleLODLevel*> LODLevels; // 현재는 Level 0만 사용

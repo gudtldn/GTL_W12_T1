@@ -57,7 +57,7 @@ void FParticleMeshRenderPass::PrepareRenderArr()
                     const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
                     // TODO: 최적화 필요
-                    if (ReplayData.eEmitterType == DET_Mesh)
+                    if (ReplayData.eEmitterType == EDynamicEmitterType::DET_Mesh)
                     {
                         ParticleComponents.Add(Iter);
                     }
@@ -133,7 +133,7 @@ void FParticleMeshRenderPass::DrawParticles()
             {
                 const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
-                if (ReplayData.eEmitterType == DET_Mesh)
+                if (ReplayData.eEmitterType == EDynamicEmitterType::DET_Mesh)
                 {
                     FDynamicMeshEmitterData* MeshData = dynamic_cast<FDynamicMeshEmitterData*>(Emitter);
                     if (MeshData)

@@ -31,13 +31,6 @@ void FTileLightCullingPass::ResizeTiles(const UINT InWidth, const UINT InHeight)
 void FTileLightCullingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
-
-    ResizeTiles(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
-    // 한 타일이 가질 수 있는 조명 ID 목록을 비트마스크로 표현한 총 슬롯 수
-
-    CreateShader();
-    CreateViews();
-    CreateBuffers(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
 }
 
 void FTileLightCullingPass::PrepareRenderArr()
@@ -144,7 +137,7 @@ void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->CSSetConstantBuffers(0, 1, NullBuffer);
 }
 
-void FTileLightCullingPass::CreateShader()
+void FTileLightCullingPass::CreateResource()
 {
     // Compute Shader 생성
     const HRESULT Result = ShaderManager->AddComputeShader(L"TileLightCullingComputeShader", L"Shaders/TileLightCullingComputeShader.hlsl", "mainCS");
@@ -154,6 +147,11 @@ void FTileLightCullingPass::CreateShader()
     }
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
 
+    ResizeTiles(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
+
+    // 한 타일이 가질 수 있는 조명 ID 목록을 비트마스크로 표현한 총 슬롯 수
+    CreateViews();
+    CreateBuffers(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
 }
 
 void FTileLightCullingPass::CreatePointLightBufferGPU()
@@ -420,6 +418,8 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
 
 void FTileLightCullingPass::Release()
 {
+    FRenderPassBase::Release();
+    
     // Compute Shader Release는 ShaderManager에서 관리
     SAFE_RELEASE(PerTilePointLightIndexMaskBuffer)
     SAFE_RELEASE(PerTilePointLightIndexMaskBufferUAV)

@@ -34,10 +34,12 @@ public:
     void StartPIE();
     void StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset);
     void StartParticleViewer(FName ParticleName, UParticleSystem* ParticleSystem);
-    void BindEssentialObjects();
+
     void EndPIE();
     void EndSkeletalMeshViewer();
     void EndParticleViewer();
+    
+    void BindEssentialObjects();
 
     // 주석은 UE에서 사용하던 매개변수.
     FWorldContext& GetEditorWorldContext(/*bool bEnsureIsGWorld = false*/);

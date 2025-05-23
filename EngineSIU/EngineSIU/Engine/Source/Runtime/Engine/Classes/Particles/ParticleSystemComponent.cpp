@@ -49,10 +49,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         }
     }
 
-    if (EmitterInstances.Num() > 0)
-    {
-        UpdateDynamicData();
-    }
+    UpdateDynamicData();
 }
 
 void UParticleSystemComponent::GetProperties(TMap<FString, FString>& OutProperties) const
@@ -69,11 +66,11 @@ void UParticleSystemComponent::InitializeSystem()
     for (int32 i = 0; i < Emitters.Num(); i++)
     {
         UParticleEmitter* EmitterTemplate = Emitters[i];
-        if (EmitterTemplate->eEmitterType == EDynamicEmitterType::DET_Sprite)
+        if (EmitterTemplate->EmitterType == EDynamicEmitterType::DET_Sprite)
         {
             CreateAndAddSpriteEmitterInstance(EmitterTemplate);
         }
-        else
+        else if (EmitterTemplate->EmitterType == EDynamicEmitterType::DET_Mesh)
         {
             CreateAndAddMeshEmitterInstance(EmitterTemplate);
         }
@@ -84,7 +81,6 @@ void UParticleSystemComponent::CreateAndAddSpriteEmitterInstance(UParticleEmitte
 {
     if (EmitterTemplate)
     {
-        // Todo: 스프라이트 이미터로 생성, 나중에 메시 관련도 추가해서 처리
         FParticleSpriteEmitterInstance* Instance = new FParticleSpriteEmitterInstance();
         Instance->SpriteTemplate = EmitterTemplate;
         Instance->Component = this;
@@ -100,7 +96,6 @@ void UParticleSystemComponent::CreateAndAddMeshEmitterInstance(UParticleEmitter*
 {
     if (EmitterTemplate)
     {
-        // Todo: 스프라이트 이미터로 생성, 나중에 메시 관련도 추가해서 처리
         FParticleMeshEmitterInstance* Instance = new FParticleMeshEmitterInstance();
         Instance->SpriteTemplate = EmitterTemplate;
         Instance->Component = this;

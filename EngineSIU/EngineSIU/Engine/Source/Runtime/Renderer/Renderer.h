@@ -15,6 +15,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
+class FPostProcessRenderPass;
 class FParticleMeshRenderPass;
 class FParticleSpriteRenderPass;
 class FTranslucentRenderPass;
@@ -104,8 +105,6 @@ public:
     FGizmoRenderPass* GizmoRenderPass = nullptr;
     FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;
     FLineRenderPass* LineRenderPass = nullptr;
-    FFogRenderPass* FogRenderPass = nullptr;
-    FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
     FEditorRenderPass* EditorRenderPass = nullptr;
     FTranslucentRenderPass* TranslucentRenderPass = nullptr;
 
@@ -115,8 +114,9 @@ public:
     FDepthPrePass* DepthPrePass = nullptr;
     FTileLightCullingPass* TileLightCullingPass = nullptr;
 
+    FPostProcessRenderPass* PostProcessRenderPass = nullptr;
+
     FCompositingPass* CompositingPass = nullptr;
-    FPostProcessCompositingPass* PostProcessCompositingPass = nullptr;
     
     FSlateRenderPass* SlateRenderPass = nullptr;
 

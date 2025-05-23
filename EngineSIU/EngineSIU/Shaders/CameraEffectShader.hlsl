@@ -1,3 +1,4 @@
+
 cbuffer CameraFadeConstants : register(b0)
 {
     float4 FadeColor;
@@ -60,42 +61,44 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
 
 float4 mainPS(PS_Input Input) : SV_Target
 {
-    float2 uv = Input.UV;
+    float2 UV = Input.UV;
     
     // Letter Box
-    float2 cropMin = float2(0, 0);
-    float2 cropMax = float2(1, 1);
+    float2 CropMin = float2(0, 0);
+    float2 CropMax = float2(1, 1);
 
     if (ScreenAspect > TargetAspect)
     {
-        float targetHeight = TargetAspect / ScreenAspect;
-        float bar = (1.0 - targetHeight) * 0.5;
-        cropMin.x = bar;
-        cropMax.x = 1.0 - bar;
+        float TargetHeight = TargetAspect / ScreenAspect;
+        float Bar = (1.0 - TargetHeight) * 0.5;
+        CropMin.x = Bar;
+        CropMax.x = 1.0 - Bar;
     }
     else if (ScreenAspect < TargetAspect)
     {
-        float targetWidth = ScreenAspect / TargetAspect;
-        float bar = (1.0 - targetWidth) * 0.5;
-        cropMin.y = bar;
-        cropMax.y = 1.0 - bar;
+        float TargetWidth = ScreenAspect / TargetAspect;
+        float Bar = (1.0 - TargetWidth) * 0.5;
+        CropMin.y = Bar;
+        CropMax.y = 1.0 - Bar;
     }
 
-    if (uv.x < cropMin.x || uv.x > cropMax.x || uv.y < cropMin.y || uv.y > cropMax.y)
+    if (UV.x < CropMin.x || UV.x > CropMax.x || UV.y < CropMin.y || UV.y > CropMax.y)
+    {
         return LetterBoxColor;
+    }
     
     // Vignette 
-    float2 pos = uv - VignetteCenter;
-    pos.x *= VignetteCenter.x / VignetteCenter.y;
+    float2 Pos = UV - VignetteCenter;
+    Pos.x *= VignetteCenter.x / VignetteCenter.y;
 
-    float dist = length(pos);
+    float Dist = length(Pos);
 
     // Falloff function smoothstep or pow
-    float vignette = smoothstep(VignetteRadius, VignetteRadius - VignetteSmoothness, dist);
+    float Vignette = smoothstep(VignetteRadius, VignetteRadius - VignetteSmoothness, Dist);
     //float vignette = pow(saturate((VignetteRadius - dist) / VignetteSmoothness), 2.0);
     
     // [TEMP] Lerp시작 색상 - Scene SRV를 Sampling 하도록 하는 것이 좋아 보임
-    float4 FinalColor = lerp(float4(VignetteColor.rgb, 0), VignetteColor, (1 - vignette) * VignetteIntensity);
+    float4 FinalColor = lerp(float4(VignetteColor.rgb, 0), VignetteColor, (1 - Vignette) * VignetteIntensity);
     
     // Camera Fade
     FinalColor = lerp(FinalColor, FadeColor, FadeAmount);
