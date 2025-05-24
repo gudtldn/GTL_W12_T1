@@ -318,6 +318,7 @@
     <ClCompile Include="Engine\Source\Runtime\Launch\EngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\ImGuiManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Physics\BodySetupCore.cpp"/>
     <ClCompile Include="Engine\Source\Runtime\Physics\CollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\CompositingPass.cpp" />
@@ -610,6 +611,7 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LightDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Physics\BodySetupCore.h"/>
     <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\CompositingPass.h" />
