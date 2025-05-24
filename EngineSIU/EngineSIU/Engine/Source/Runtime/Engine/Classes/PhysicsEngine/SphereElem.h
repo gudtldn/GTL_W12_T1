@@ -13,6 +13,6 @@ public:
 
     FKSphereElem(const FKSphereElem&) = default;
     FKSphereElem& operator=(const FKSphereElem&) = default;
-    FKSphereElem(const FKSphereElem&&) = default;
+    FKSphereElem(FKSphereElem&&) = default;
     FKSphereElem& operator=(FKSphereElem&&) = default;
 };

@@ -13,6 +13,6 @@ public:
 
     FKConvexElem(const FKConvexElem&) = default;
     FKConvexElem& operator=(const FKConvexElem&) = default;
-    FKConvexElem(const FKConvexElem&&) = default;
+    FKConvexElem(FKConvexElem&&) = default;
     FKConvexElem& operator=(FKConvexElem&&) = default;
 };

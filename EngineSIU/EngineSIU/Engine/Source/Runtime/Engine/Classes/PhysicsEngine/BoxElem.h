@@ -13,6 +13,6 @@ public:
 
     FKBoxElem(const FKBoxElem&) = default;
     FKBoxElem& operator=(const FKBoxElem&) = default;
-    FKBoxElem(const FKBoxElem&&) = default;
+    FKBoxElem(FKBoxElem&&) = default;
     FKBoxElem& operator=(FKBoxElem&&) = default;
 };

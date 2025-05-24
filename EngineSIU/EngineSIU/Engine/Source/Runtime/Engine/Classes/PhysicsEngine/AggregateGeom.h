@@ -16,7 +16,7 @@ public:
 
     FKAggregateGeom(const FKAggregateGeom&) = default;
     FKAggregateGeom& operator=(const FKAggregateGeom&) = default;
-    FKAggregateGeom(const FKAggregateGeom&&) = default;
+    FKAggregateGeom(FKAggregateGeom&&) = default;
     FKAggregateGeom& operator=(FKAggregateGeom&&) = default;
 
 public:
