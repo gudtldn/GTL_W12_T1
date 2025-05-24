@@ -13,5 +13,5 @@ public:
     virtual ~USkinnedAsset() override = default;
 
     // abstract function
-    virtual UPhysicsAsset* GetPhysicsAsset() const;
+    virtual UPhysicsAsset* GetPhysicsAsset() const { return nullptr; }
 };

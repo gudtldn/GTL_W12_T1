@@ -14,7 +14,7 @@ public:
 
     FBodyInstance(const FBodyInstance&) = default;
     FBodyInstance& operator=(const FBodyInstance&) = default;
-    FBodyInstance(const FBodyInstance&&) = default;
+    FBodyInstance(FBodyInstance&&) = default;
     FBodyInstance& operator=(FBodyInstance&&) = default;
 
 public:

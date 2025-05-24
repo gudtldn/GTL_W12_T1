@@ -4,6 +4,7 @@
 #include "Components/Material/Material.h"
 #include "Define.h"
 
+class UBodySetup;
 struct FStaticMeshRenderData;
 
 class UStaticMesh : public UObject
@@ -27,7 +28,22 @@ public:
 
     virtual void SerializeAsset(FArchive& Ar) override;
 
+    [[nodiscard]] UBodySetup* GetBodySetup() const
+    {
+        return BodySetup;
+    }
+
+    void SetBodySetup(UBodySetup* NewBodySetup)
+    {
+        BodySetup = NewBodySetup;
+    }
+
 private:
     FStaticMeshRenderData* RenderData = nullptr;
     TArray<FStaticMaterial*> Materials;
+
+    UPROPERTY(
+        EditAnywhere | Transient | DuplicateTransient, { .Category = "StaticMesh" },
+        UBodySetup*, BodySetup, = nullptr;
+    )
 };
