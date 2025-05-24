@@ -1,6 +1,7 @@
 #pragma once
 #include "Components/SceneComponent.h"
 #include "Engine/OverlapInfo.h"
+#include "PhysicsEngine/BodyInstance.h"
 
 // Begin Test
 namespace physx
@@ -106,6 +107,13 @@ public:
 
     /** Returns list of components this component is overlapping. */
     const TArray<FOverlapInfo>& GetOverlapInfos() const;
+
+public:
+    // UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Collision, meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties))
+    UPROPERTY(
+        EditAnywhere | LuaReadOnly, ({ .Category = "Collision" }),
+        FBodyInstance, BodyInstance, ;
+    )
 
 protected:
     TArray<FOverlapInfo> OverlappingComponents;

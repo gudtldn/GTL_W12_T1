@@ -223,10 +223,13 @@
 	<s:Boolean x:Key="/Default/CppUnrealEngine/IndexPlugins/@EntryValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CppUnrealEngine/IsIndexPluginsNotificationDisabled/@EntryValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EFeature_002EServices_002ECpp_002ECodeStyle_002ESettingsUpgrade_002EFunctionReturnStyleSettingsUpgrader/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/@KeyIndexDefined">True</s:Boolean>
+	
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=001A8C64211DD943B37D5BE61C16906E/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=001A8C64211DD943B37D5BE61C16906E/EntryName/@EntryValue">Class</s:String>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=001A8C64211DD943B37D5BE61C16906E/Position/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=29DA329126B1CC46A4EF52A269A05484/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=29DA329126B1CC46A4EF52A269A05484/EntryName/@EntryValue">&lt;No Name&gt;</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=29DA329126B1CC46A4EF52A269A05484/Position/@EntryValue">4</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=DC382AF7D0007545BD63EC8B3729639C/Entry/=703BA03B30658A40A7E5241A4B95BC6B/@KeyIndexDefined">False</s:Boolean>
 	
 	
@@ -286,6 +289,43 @@ $END$
 };
 </s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=001A8C64211DD943B37D5BE61C16906E/UITag/@EntryValue">EngineSIU</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Applicability/=File/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/CustomProperties/=Extension/@EntryIndexedValue">h</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/CustomProperties/=FileName/@EntryIndexedValue">NewStruct</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/CustomProperties/=ValidateFileName/@EntryIndexedValue">False</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Description/@EntryValue">&amp;Struct</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/Expression/@EntryValue">cppFileheader()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/InitialRange/@EntryValue">-1</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=STRUCT/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=STRUCT/Expression/@EntryValue">getAlphaNumericFileNameWithoutExtension()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=STRUCT/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Scope/=CD5B1AEA8099834C8F10F84286AA88CA/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Scope/=CD5B1AEA8099834C8F10F84286AA88CA/Type/@EntryValue">InCppProjectFile</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Text/@EntryValue">$HEADER$#pragma once
+#include "UObject/ObjectMacros.h"
+
+
+struct F$STRUCT$
+{
+    DECLARE_STRUCT(F$STRUCT$)
+
+public:
+    F$STRUCT$() = default;
+    virtual ~F$STRUCT$() = default;
+
+    F$STRUCT$(const F$STRUCT$&amp;) = default;
+    F$STRUCT$&amp; operator=(const F$STRUCT$&amp;) = default;
+    F$STRUCT$(F$STRUCT$&amp;&amp;) = default;
+    F$STRUCT$&amp; operator=(F$STRUCT$&amp;&amp;) = default;
+$END$
+};
+</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/UITag/@EntryValue">EngineSIU</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=392D26C40764894D925179C0CF3F09FA/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=392D26C40764894D925179C0CF3F09FA/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=392D26C40764894D925179C0CF3F09FA/Description/@EntryValue">Struct에 FArchive용 operator&lt;&lt;를 생성합니다</s:String>
