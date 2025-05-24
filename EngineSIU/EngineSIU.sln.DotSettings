@@ -297,6 +297,7 @@ $END$
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Description/@EntryValue">&amp;Struct</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/Expression/@EntryValue">cppFileheader()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/InitialRange/@EntryValue">-1</s:Int64>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=HEADER/Order/@EntryValue">0</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=STRUCT/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=29DA329126B1CC46A4EF52A269A05484/Field/=STRUCT/Expression/@EntryValue">getAlphaNumericFileNameWithoutExtension()</s:String>
@@ -319,7 +320,7 @@ public:
 
     F$STRUCT$(const F$STRUCT$&amp;) = default;
     F$STRUCT$&amp; operator=(const F$STRUCT$&amp;) = default;
-    F$STRUCT$(const F$STRUCT$&amp;&amp;) = default;
+    F$STRUCT$(F$STRUCT$&amp;&amp;) = default;
     F$STRUCT$&amp; operator=(F$STRUCT$&amp;&amp;) = default;
 $END$
 };

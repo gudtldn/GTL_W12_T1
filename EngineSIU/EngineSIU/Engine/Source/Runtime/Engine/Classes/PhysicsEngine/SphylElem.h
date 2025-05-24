@@ -13,6 +13,6 @@ public:
 
     FKSphylElem(const FKSphylElem&) = default;
     FKSphylElem& operator=(const FKSphylElem&) = default;
-    FKSphylElem(const FKSphylElem&&) = default;
+    FKSphylElem(FKSphylElem&&) = default;
     FKSphylElem& operator=(FKSphylElem&&) = default;
 };
