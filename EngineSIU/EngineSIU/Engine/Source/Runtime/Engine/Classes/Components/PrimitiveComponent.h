@@ -1,6 +1,7 @@
 #pragma once
 #include "Components/SceneComponent.h"
 #include "Engine/OverlapInfo.h"
+#include "PhysicsEngine/BodyInstance.h"
 
 DECLARE_MULTICAST_DELEGATE_FiveParams(FComponentHitSignature, UPrimitiveComponent* /* HitComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, FVector /* NormalImpulse */, const FHitResult& /* Hit */);
 DECLARE_MULTICAST_DELEGATE_SixParams(FComponentBeginOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */, bool /* bFromSweep */, const FHitResult& /* Hit */);
@@ -95,6 +96,13 @@ public:
 
     /** Returns list of components this component is overlapping. */
     const TArray<FOverlapInfo>& GetOverlapInfos() const;
+
+public:
+    // UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Collision, meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties))
+    UPROPERTY(
+        EditAnywhere | LuaReadOnly, ({ .Category = "Collision" }),
+        FBodyInstance, BodyInstance, ;
+    )
 
 protected:
     TArray<FOverlapInfo> OverlappingComponents;

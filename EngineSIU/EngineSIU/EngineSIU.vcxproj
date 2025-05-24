@@ -591,6 +591,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h"/>
+      <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintInstance.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConvexElem.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h"/>
