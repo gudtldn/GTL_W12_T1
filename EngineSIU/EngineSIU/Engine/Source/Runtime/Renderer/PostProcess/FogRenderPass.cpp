@@ -16,12 +16,9 @@
 void FFogRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
-    
-    CreateShader();
-    CreateSampler();
 }
 
-void FFogRenderPass::CreateShader()
+void FFogRenderPass::CreateResource()
 {
     // 정점 셰이더 및 입력 레이아웃 생성
     HRESULT hr = ShaderManager->AddVertexShader(L"FogVertexShader", L"Shaders/FogShader.hlsl", "mainVS");
@@ -39,6 +36,8 @@ void FFogRenderPass::CreateShader()
     // 생성된 셰이더와 입력 레이아웃 획득
     VertexShader = ShaderManager->GetVertexShaderByKey(L"FogVertexShader");
     PixelShader = ShaderManager->GetPixelShaderByKey(L"FogPixelShader");
+    
+    CreateSampler();
 }
 
 void FFogRenderPass::UpdateShader()

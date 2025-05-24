@@ -41,12 +41,13 @@ public:
     void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices,
         ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const;
 
-    void CreateShader();
     void UpdateShader();
 
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    virtual void CreateResource() override;
     
     TArray<UBillboardComponent*> BillboardComps;
 

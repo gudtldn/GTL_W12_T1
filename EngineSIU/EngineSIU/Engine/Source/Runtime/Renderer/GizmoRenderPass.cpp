@@ -33,9 +33,21 @@
 void FGizmoRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
+}
 
+void FGizmoRenderPass::CreateResource()
+{
     CreateBuffer();
-    CreateShader();
+    
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+
+    HRESULT hr = ShaderManager->AddPixelShader(L"GizmoPixelShader", L"Shaders/GizmoPixelShader.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        return;
+    }
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"GizmoPixelShader");
 
     D3D11_SAMPLER_DESC SamplerDesc = {};
     SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -47,19 +59,6 @@ void FGizmoRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsD
     SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     
     Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
-}
-
-void FGizmoRenderPass::CreateShader()
-{
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-
-    HRESULT hr = ShaderManager->AddPixelShader(L"GizmoPixelShader", L"Shaders/GizmoPixelShader.hlsl", "mainPS");
-    if (FAILED(hr))
-    {
-        return;
-    }
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"GizmoPixelShader");
 }
 
 void FGizmoRenderPass::UpdateShader()
@@ -111,6 +110,18 @@ void FGizmoRenderPass::PrepareRenderArr()
 
 void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (!EditorEngine)
+    {
+        UE_LOG(ELogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
+        return;
+    }
+
+    if (EditorEngine->GetSelectedActor() == nullptr && EditorEngine->GetSelectedComponent() == nullptr)
+    {
+        return;
+    }
+    
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Editor);
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Gizmo);
@@ -126,18 +137,6 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     ViewportSize.ViewportSize.X = Viewport->GetViewport()->GetRect().Width;
     ViewportSize.ViewportSize.Y = Viewport->GetViewport()->GetRect().Height;
     BufferManager->UpdateConstantBuffer(TEXT("FViewportSize"), ViewportSize);
-    
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-    if (!EditorEngine)
-    {
-        UE_LOG(ELogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
-        return;
-    }
-
-    if (EditorEngine->GetSelectedActor() == nullptr && EditorEngine->GetSelectedComponent() == nullptr)
-    {
-        return;
-    }
     
     EControlMode Mode = EditorEngine->GetEditorPlayer()->GetControlMode();
     if (Mode == CM_TRANSLATION)

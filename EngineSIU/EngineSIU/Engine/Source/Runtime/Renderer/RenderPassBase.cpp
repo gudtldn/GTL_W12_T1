@@ -11,7 +11,14 @@ FRenderPassBase::FRenderPassBase()
     : BufferManager(nullptr)
     , Graphics(nullptr)
     , ShaderManager(nullptr)
+    , GPUTimingManager(nullptr)
 {
+    GPUTimingManager = FEngineLoop::Renderer.GPUTimingManager;
+}
+
+FRenderPassBase::~FRenderPassBase()
+{
+    Release();
 }
 
 void FRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
@@ -19,6 +26,29 @@ void FRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDe
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManage;
+
+    CreateResource();
+
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    }
+}
+
+void FRenderPassBase::PrepareRenderArr()
+{
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->PrepareRenderArr();
+    }
+}
+
+void FRenderPassBase::ClearRenderArr()
+{
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->ClearRenderArr();
+    }
 }
 
 void FRenderPassBase::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
@@ -138,11 +168,11 @@ void FRenderPassBase::RenderSkeletalMesh_Internal(const FSkeletalMeshRenderData*
     constexpr UINT Offset = 0;
 
     FCPUSkinningConstants CPUSkinningData;
-    CPUSkinningData.bCPUSKinning = USkeletalMeshComponent::GetCPUSkinning();
+    CPUSkinningData.bCPUSkinning = USkeletalMeshComponent::GetCPUSkinning();
     BufferManager->UpdateConstantBuffer(TEXT("FCPUSkinningConstants"), CPUSkinningData);
     
     FVertexInfo VertexInfo;
-    if (CPUSkinningData.bCPUSKinning)
+    if (CPUSkinningData.bCPUSkinning)
     {
         BufferManager->CreateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
         BufferManager->UpdateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices);
@@ -209,4 +239,12 @@ void FRenderPassBase::UpdateBones(const USkeletalMeshComponent* SkeletalMeshComp
     }
 
     BufferManager->UpdateStructuredBuffer(TEXT("BoneBuffer"), FinalBoneMatrices);
+}
+
+void FRenderPassBase::Release()
+{
+    for (const IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        delete RenderPass;
+    }
 }

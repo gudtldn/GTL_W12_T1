@@ -184,7 +184,7 @@ struct FMeshParticleInstanceVertex
     //float RelativeTime;
 };
 
-enum EDynamicEmitterType
+enum class EDynamicEmitterType : uint8
 {
     DET_Unknown = 0,
     DET_Sprite,
@@ -261,7 +261,7 @@ struct FDynamicEmitterReplayDataBase
 
     /** Constructor */
     FDynamicEmitterReplayDataBase()
-        : eEmitterType( DET_Unknown ),
+        : eEmitterType( EDynamicEmitterType::DET_Unknown ),
           ActiveParticleCount( 0 ),
           ParticleStride( 0 ),
           Scale( FVector( 1.0f ) ),

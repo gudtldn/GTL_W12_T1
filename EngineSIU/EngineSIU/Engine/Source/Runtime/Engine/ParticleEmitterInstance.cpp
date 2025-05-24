@@ -310,7 +310,7 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
         return false;
     }
 
-    OutData.eEmitterType = DET_Unknown;
+    OutData.eEmitterType = EDynamicEmitterType::DET_Unknown;
 
     OutData.ActiveParticleCount = ActiveParticles;
     OutData.ParticleStride = ParticleStride;
@@ -329,7 +329,7 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
     memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
 
     FDynamicSpriteEmitterReplayData* SpriteReplayData = dynamic_cast<FDynamicSpriteEmitterReplayData*>(&OutData);
-    if (SpriteReplayData && SpriteTemplate->eEmitterType == EDynamicEmitterType::DET_Sprite)
+    if (SpriteReplayData && SpriteTemplate->EmitterType == EDynamicEmitterType::DET_Sprite)
     {
         SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImagesHorizontal;
         SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImagesVertical;
@@ -389,8 +389,8 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
         return false;
     }
 
-    OutData.eEmitterType = DET_Sprite;
-    SpriteTemplate->eEmitterType = DET_Sprite;
+    OutData.eEmitterType = EDynamicEmitterType::DET_Sprite;
+    SpriteTemplate->EmitterType = EDynamicEmitterType::DET_Sprite;
 
     FDynamicSpriteEmitterReplayDataBase* NewReplayData = dynamic_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
 
@@ -490,8 +490,8 @@ bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase&
         return false;
     }
 
-    OutData.eEmitterType = DET_Mesh;
-    SpriteTemplate->eEmitterType = DET_Mesh;
+    OutData.eEmitterType = EDynamicEmitterType::DET_Mesh;
+    SpriteTemplate->EmitterType = EDynamicEmitterType::DET_Mesh;
 
     FDynamicMeshEmitterReplayData* NewReplayData = dynamic_cast<FDynamicMeshEmitterReplayData*>(&OutData);
 

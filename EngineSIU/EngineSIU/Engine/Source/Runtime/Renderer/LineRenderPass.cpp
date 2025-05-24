@@ -27,8 +27,6 @@ FLineRenderPass::FLineRenderPass()
 void FLineRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
-    
-    CreateShader();
 }
 
 void FLineRenderPass::PrepareRenderArr()
@@ -40,7 +38,7 @@ void FLineRenderPass::ClearRenderArr()
     // 필요에 따라 내부 배열을 초기화
 }
 
-void FLineRenderPass::CreateShader()
+void FLineRenderPass::CreateResource()
 {
     HRESULT Result = ShaderManager->AddVertexShader(L"VertexLineShader", L"Shaders/ShaderLine.hlsl", "mainVS");
     Result = ShaderManager->AddPixelShader(L"PixelLineShader", L"Shaders/ShaderLine.hlsl", "mainPS");
@@ -83,17 +81,15 @@ void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) co
 
 void FLineRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
+    constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-    // TODO: 알파 블렌드 설정해야할지 생각해 봐야 함.
-    //Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 }

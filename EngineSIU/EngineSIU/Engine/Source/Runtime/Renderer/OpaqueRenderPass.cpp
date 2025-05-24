@@ -25,7 +25,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/SkeletalMesh.h"
 
-void FOpaqueRenderPass::CreateShader()
+void FOpaqueRenderPass::CreateResource()
 {
     // Begin Debug Shaders
     HRESULT hr = ShaderManager->AddPixelShader(L"CommonMeshPixelShaderDepth", L"Shaders/CommonMeshPixelShaderDepth.hlsl", "mainPS");
@@ -324,8 +324,6 @@ void FOpaqueRenderPass::RenderSkeletalMesh(const std::shared_ptr<FEditorViewport
 void FOpaqueRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
-    
-    CreateShader();
 }
 
 void FOpaqueRenderPass::PrepareRenderArr()

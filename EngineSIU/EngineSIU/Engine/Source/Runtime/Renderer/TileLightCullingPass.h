@@ -58,12 +58,11 @@ public:
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    void CreateShader();
     void CreatePointLightBufferGPU();
     void CreateSpotLightBufferGPU();
     void CreateViews();
     void CreateBuffers(uint32 InWidth, uint32 InHeight);
-    void Release();
+    virtual void Release() override;
     void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void ClearUAVs() const;
     void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
@@ -88,6 +87,8 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    virtual void CreateResource() override;
     
 private:
     ID3D11ComputeShader* ComputeShader;

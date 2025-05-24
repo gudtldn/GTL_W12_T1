@@ -21,7 +21,7 @@ float FEditorViewportClient::OrthoSize = 10.0f;
 FEditorViewportClient::FEditorViewportClient()
     : Viewport(nullptr)
     , ViewportType(LVT_Perspective)
-    , ShowFlag(4095)
+    , ShowFlag(ULLONG_MAX)
     , ViewMode(EViewModeIndex::VMI_Lit_BlinnPhong)
 {
 }

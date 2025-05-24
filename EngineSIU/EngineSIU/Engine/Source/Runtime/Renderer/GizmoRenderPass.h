@@ -30,7 +30,6 @@ public:
     // Gizmo 한 개 렌더링 함수
     void RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const std::shared_ptr<FEditorViewportClient>& Viewport);
 
-    void CreateShader();
     void UpdateShader();
     void ReleaseShader();
 
@@ -39,6 +38,8 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    virtual void CreateResource() override;
 
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;

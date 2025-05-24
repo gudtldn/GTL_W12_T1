@@ -1,5 +1,4 @@
 #pragma once
-#include <cmath>
 #include <algorithm>
 #include "Core/Container/String.h"
 #include "Core/Container/Array.h"
@@ -211,8 +210,6 @@ struct FPoint
 {
     FPoint() : x(0), y(0) {}
     FPoint(float _x, float _y) : x(_x), y(_y) {}
-    FPoint(long _x, long _y) : x(_x), y(_y) {}
-    FPoint(int _x, int _y) : x(_x), y(_y) {}
 
     float x, y;
 };
@@ -223,10 +220,10 @@ struct FBoundingBox
     FBoundingBox(FVector InMin, FVector InMax) : MinLocation(InMin), MaxLocation(InMax) {}
     
     FVector MinLocation; // Minimum extents
-    float pad;
+    float pad = 0.0f;
     
     FVector MaxLocation; // Maximum extents
-    float pad1;
+    float pad1 = 0.0f;
 
     bool IsValidBox() const
     {
@@ -376,7 +373,7 @@ struct FPrimitiveCounts
 #define NUM_FACES 6
 #define MAX_CASCADE_NUM 5
 
-enum ELightType
+enum ELightType : uint8
 {
     POINT_LIGHT = 1,
     SPOT_LIGHT = 2,
@@ -524,14 +521,6 @@ struct FBufferInfo
     FIndexInfo IndexInfo;
 };
 
-struct FScreenConstants
-{
-    FVector2D ScreenSize;   // 화면 전체 크기 (w, h)
-    FVector2D UVOffset;     // 뷰포트 시작 UV (x/sw, y/sh)
-    FVector2D UVScale;      // 뷰포트 크기 비율 (w/sw, h/sh)
-    FVector2D Padding;      // 정렬용 (사용 안 해도 무방)
-};
-
 struct FFogConstants
 {
     FLinearColor FogColor;
@@ -555,6 +544,6 @@ struct FGammaConstants
 
 struct FCPUSkinningConstants
 {
-    int bCPUSKinning;
+    int bCPUSkinning;
     FVector Padding;
 };

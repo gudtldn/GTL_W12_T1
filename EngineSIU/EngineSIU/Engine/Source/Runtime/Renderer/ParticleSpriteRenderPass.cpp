@@ -43,7 +43,7 @@ void FParticleSpriteRenderPass::PrepareRenderArr()
                     const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
                     // TODO: 최적화 필요
-                    if (ReplayData.eEmitterType == DET_Sprite)
+                    if (ReplayData.eEmitterType == EDynamicEmitterType::DET_Sprite)
                     {
                         ParticleComponents.Add(Iter);
                     }
@@ -132,7 +132,7 @@ void FParticleSpriteRenderPass::DrawParticles()
             {
                 const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
-                if (ReplayData.eEmitterType == DET_Sprite)
+                if (ReplayData.eEmitterType == EDynamicEmitterType::DET_Sprite)
                 {
                     FDynamicSpriteEmitterDataBase* SpriteData = dynamic_cast<FDynamicSpriteEmitterDataBase*>(Emitter);
                     if (SpriteData)
@@ -173,7 +173,14 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         SpriteVertex.Color = Particle.Color;
         SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
         SpriteVertex.Rotation = Particle.Rotation;
-        SpriteVertex.SubImageIndex = reinterpret_cast<const FFullSubUVPayload*>(ParticleBase + SubUVDataOffset)->ImageIndex;
+        if (SubUVDataOffset == 0)
+        {
+            SpriteVertex.SubImageIndex = 0;
+        }
+        else
+        {
+            SpriteVertex.SubImageIndex = reinterpret_cast<const FFullSubUVPayload*>(ParticleBase + SubUVDataOffset)->ImageIndex;
+        }
 
         SpriteVertices.Add(SpriteVertex);
     }

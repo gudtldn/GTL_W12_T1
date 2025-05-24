@@ -26,7 +26,6 @@ public:
     FShadowRenderPass() = default;
     virtual ~FShadowRenderPass() override = default;
     
-    void CreateShader();
     void PrepareCubeMapRenderState();
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
     void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
@@ -53,6 +52,8 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    virtual void CreateResource() override;
     
 private:
     TArray<class UStaticMeshComponent*> StaticMeshComponents;

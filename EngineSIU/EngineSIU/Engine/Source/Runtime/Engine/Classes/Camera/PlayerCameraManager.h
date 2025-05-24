@@ -75,13 +75,17 @@ public:
     {
         switch (BlendFunction)
         {
-        case VTBlend_Linear: return FMath::Lerp(0.f, 1.f, TimePct); 
-        case VTBlend_Cubic:	return FMath::CubicInterp(0.f, 0.f, 1.f, 0.f, TimePct); 
-        case VTBlend_EaseInOut: return FMath::InterpEaseInOut(0.f, 1.f, TimePct, BlendExp); 
-        case VTBlend_EaseIn: return FMath::Lerp(0.f, 1.f, FMath::Pow(TimePct, BlendExp)); 
-        case VTBlend_EaseOut: return FMath::Lerp(0.f, 1.f, FMath::Pow(TimePct, (FMath::IsNearlyZero(BlendExp) ? 1.f : (1.f / BlendExp))));
-        default:
-            break;
+        case VTBlend_Linear:
+            return FMath::Lerp(0.f, 1.f, TimePct); 
+        case VTBlend_Cubic:
+            return FMath::CubicInterp(0.f, 0.f, 1.f, 0.f, TimePct); 
+        case VTBlend_EaseInOut:
+            return FMath::InterpEaseInOut(0.f, 1.f, TimePct, BlendExp); 
+        case VTBlend_EaseIn:
+            return FMath::Lerp(0.f, 1.f, FMath::Pow(TimePct, BlendExp)); 
+        case VTBlend_EaseOut:
+            const float Exp = FMath::IsNearlyZero(BlendExp) ? 1.f : (1.f / BlendExp);
+            return FMath::Lerp(0.f, 1.f, FMath::Pow(TimePct, Exp));
         }
 
         return 1.f;
@@ -113,6 +117,7 @@ public:
     void ApplyCameraModifiers(float DeltaTime, FMinimalViewInfo& InOutPOV);
 
     void AssignViewTarget(AActor* NewTarget, FTViewTarget& VT, struct FViewTargetTransitionParams TransitionParams=FViewTargetTransitionParams());
+
     void StartVignetteAnimation(float FromIntensity, float ToIntensity, float Duration);
 
     void SetViewTarget(class AActor* NewTarget, struct FViewTargetTransitionParams TransitionParams);
@@ -122,15 +127,18 @@ public:
     virtual void StopCameraShake(UCameraShakeBase* ShakeInstance, bool bImmediately = true);
 
     virtual void StopAllInstancesOfCameraShake(UClass* ShakeClass, bool bImmediately = true);
-    
+
     float GetLetterBoxRatio();
+    
 protected:
     virtual void DoUpdateCamera(float DeltaTime);
 
     virtual void UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime);
+    
     void SetCameraVignette(float InIntensity, float InRadius, float InSmoothness);
 
     void SetCameraVignetteColor(FLinearColor InColor);
+    
     FMinimalViewInfo BlendViewTargets(const FTViewTarget& A, const FTViewTarget& B, float Alpha);
 
     FMinimalViewInfo LastFrameFOV;

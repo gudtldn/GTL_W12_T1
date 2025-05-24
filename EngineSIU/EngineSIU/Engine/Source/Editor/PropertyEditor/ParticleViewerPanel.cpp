@@ -221,13 +221,13 @@ void ParticleViewerPanel::RenderEmitterPanel()
     if (ImGui::Button("+\nAdd\nNew\nSpriteEmitter", ImVec2(plusButtonWidth, plusButtonHeight / 2)))
     {
         // 새로운 Emitter 추가
-        AddNewEmitter(1);
+        AddNewEmitter(EDynamicEmitterType::DET_Sprite);
     }
 
     if (ImGui::Button("+\nAdd\nNew\nMeshEmitter", ImVec2(plusButtonWidth, plusButtonHeight / 2)))
     {
         // 새로운 Emitter 추가
-        AddNewEmitter(2);
+        AddNewEmitter(EDynamicEmitterType::DET_Mesh);
     }
     ImGui::EndGroup();  
 
@@ -249,7 +249,7 @@ void ParticleViewerPanel::RenderEmitterPanel()
     ImGui::End();
 }
 
-void ParticleViewerPanel::AddNewEmitter(int i)
+void ParticleViewerPanel::AddNewEmitter(EDynamicEmitterType Type)
 {
     if (!ParticleSystem)
     {
@@ -262,13 +262,15 @@ void ParticleViewerPanel::AddNewEmitter(int i)
     {
         // 기본 이름 설정
         FString Name = "";
-        if (i == 1)
+        if (Type == EDynamicEmitterType::DET_Sprite)
         {
             Name = "Sprite Emitter";
+            NewEmitter->EmitterType = EDynamicEmitterType::DET_Sprite;
         }
-        else
+        else if (Type == EDynamicEmitterType::DET_Mesh)
         {
             Name = "Mesh Emitter";
+            NewEmitter->EmitterType = EDynamicEmitterType::DET_Mesh;
         }
 
         FString EmitterName = Name + std::to_string(ParticleSystem->GetEmitters().Num());
@@ -279,15 +281,6 @@ void ParticleViewerPanel::AddNewEmitter(int i)
 
         SelectedModule = nullptr;
         SelectedEmitter = NewEmitter;
-
-        if (i == 1)
-        {
-            ParticleSystemComponent->CreateAndAddSpriteEmitterInstance(NewEmitter);
-        }
-        else
-        {
-            ParticleSystemComponent->CreateAndAddMeshEmitterInstance(NewEmitter);
-        }
     }
 }
 

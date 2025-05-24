@@ -69,8 +69,8 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
     ScreenWidth = SwapchainDesc.BufferDesc.Width;
     ScreenHeight = SwapchainDesc.BufferDesc.Height;
 
-    Viewport.Width = ScreenWidth;
-    Viewport.Height = ScreenHeight;
+    Viewport.Width = static_cast<float>(ScreenWidth);
+    Viewport.Height = static_cast<float>(ScreenHeight);
     Viewport.MinDepth = 0.0f;
     Viewport.MaxDepth = 1.0f;
     Viewport.TopLeftX = 0;
@@ -175,10 +175,11 @@ void FGraphicsDevice::CreateRasterizerState()
     RasterizerDesc.CullMode = D3D11_CULL_BACK;
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerWireframeBack);
 
-    RasterizerDesc.FillMode = D3D11_FILL_SOLID;  // 그림자는 면 단위로 깊이가 필요하므로
-    RasterizerDesc.CullMode = D3D11_CULL_BACK;   // 그림자는 보통 앞면을 기준으 로 그리므로
-    RasterizerDesc.DepthBias = 100.0;            // 렌더 타겟 깊이 값에 이 Bias를 더해줌 -> 자기 섀도우 방지
-    RasterizerDesc.DepthBiasClamp = 0.5;         // DepthBias+SlopeScaledDepthBias합이 이 값보다 커지면 clamp (뷰-클립 공간 깊이 0~1범위에만 bias 허용)
+    RasterizerDesc.FillMode = D3D11_FILL_SOLID; // 그림자는 면 단위로 깊이가 필요하므로
+    RasterizerDesc.CullMode = D3D11_CULL_BACK;  // 그림자는 보통 앞면을 기준으 로 그리므로
+    RasterizerDesc.DepthBias = 100;             // 렌더 타겟 깊이 값에 이 Bias를 더해줌 -> 자기 섀도우 방지
+    RasterizerDesc.DepthBiasClamp = 0.5f;
+    // DepthBias+SlopeScaledDepthBias합이 이 값보다 커지면 clamp (뷰-클립 공간 깊이 0~1범위에만 bias 허용)
     RasterizerDesc.SlopeScaledDepthBias = 0.006f;           // 화면 기울기에 비례해 추가 bias 곱함
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerShadow);
 }

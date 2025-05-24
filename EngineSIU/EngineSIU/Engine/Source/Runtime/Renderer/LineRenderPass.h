@@ -24,7 +24,6 @@ public:
     virtual void ClearRenderArr() override;
 
     // 라인 렌더링 전용 함수
-    void CreateShader();
     void UpdateShader();
     void PrepareLineShader() const;
     void ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport);
@@ -33,6 +32,8 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    virtual void CreateResource() override;
 
     // 라인 셰이더 관련 멤버
     ID3D11VertexShader* VertexLineShader;

@@ -43,7 +43,7 @@ void FParticleDataContainer::Free()
 
 void FDynamicEmitterReplayDataBase::Serialize(FArchive& Ar)
 {
-    int32 EmitterTypeAsInt = eEmitterType;
+    int32 EmitterTypeAsInt = static_cast<int32>(eEmitterType);
     Ar << EmitterTypeAsInt;
     eEmitterType = static_cast< EDynamicEmitterType >( EmitterTypeAsInt );
 

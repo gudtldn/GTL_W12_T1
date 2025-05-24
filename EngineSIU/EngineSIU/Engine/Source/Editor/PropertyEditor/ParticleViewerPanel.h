@@ -12,6 +12,7 @@
 #include "Particles/Velocity/ParticleModuleVelocityBase.h"
 #include "UnrealEd/EditorPanel.h"
 
+enum class EDynamicEmitterType : uint8;
 class UParticleSystemComponent;
 class UParticleSystem;
 class UParticleEmitter;
@@ -84,7 +85,7 @@ private:
     void RenderControlPanel() const;
     void RenderToolbarPanel() const;
     void RenderEmitterPanel();
-    void AddNewEmitter(int i);
+    void AddNewEmitter(EDynamicEmitterType Type);
     void RenderDetailPanel();
     void RenderEffectSet(UParticleEmitter* Emitter);
     void RenderExitButton() const;

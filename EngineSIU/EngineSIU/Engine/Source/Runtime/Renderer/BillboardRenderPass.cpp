@@ -26,10 +26,7 @@ FBillboardRenderPass::FBillboardRenderPass()
 
 void FBillboardRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
-    CreateShader();
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 }
 
 void FBillboardRenderPass::PrepareRenderArr()
@@ -72,7 +69,7 @@ void FBillboardRenderPass::RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT
     Graphics->DeviceContext->Draw(NumVertices, 0);
 }
 
-void FBillboardRenderPass::CreateShader()
+void FBillboardRenderPass::CreateResource()
 {
     // Billboard 셰이더 생성
     D3D11_INPUT_ELEMENT_DESC TextureLayoutDesc[] = {
