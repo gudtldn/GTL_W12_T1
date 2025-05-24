@@ -147,4 +147,8 @@ public:
     UClass* GetAnimClass();
     
     void SetAnimInstanceClass(class UClass* NewClass);
+
+private:
+    TArray<physx::PxRigidDynamic*> Bodies;
+    TArray<physx::PxJoint*> Constraints;
 };

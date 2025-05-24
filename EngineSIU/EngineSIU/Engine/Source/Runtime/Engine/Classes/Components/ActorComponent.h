@@ -5,6 +5,11 @@
 
 class AActor;
 
+// Begin Test
+// 아니면 UActorComponent, bool값으로 받아도 괜찮을 듯함.
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPhysicsStateChanged, bool /* bPhysicsStateCreated */);
+// End Test
+
 class UActorComponent : public UObject
 {
     DECLARE_CLASS(UActorComponent, UObject)
@@ -67,9 +72,20 @@ public:
     void Activate();
     void Deactivate();
 
+    virtual void OnCreatePhysicsState();
+    virtual void OnDestroyPhysicsState();
+
+    /** Create any physics engine information for this component */
+    void CreatePhysicsState(bool bAllowDeferral = false);
+    /** Shut down any physics engine structure for this component */
+    void DestroyPhysicsState();
+
+    /** Return true if CreatePhysicsState() should be called.
+        Ideally CreatePhysicsState() should always succeed if this returns true, but this isn't currently the case */
+    virtual bool ShouldCreatePhysicsState() const { return false; }
+
 private:
     AActor* OwnerPrivate;
-
     /** InitializeComponent가 호출 되었는지 여부 */
     uint8 bHasBeenInitialized : 1 = false;
 
@@ -85,4 +101,13 @@ private:
 public:
     /** Component가 초기화 되었을 때, 자동으로 활성화할지 여부 */
     uint8 bAutoActive : 1 = true;
+
+    /** If the physics state is currently created for this component */
+    uint8 bPhysicsStateCreated : 1;
+    /**
+     * Pointer to the world that this component is currently registered with.
+     * This is only non-NULL when the component is registered.
+     */
+    UWorld* WorldPrivate;
+    FOnPhysicsStateChanged OnPhysicsStateChanged;
 };

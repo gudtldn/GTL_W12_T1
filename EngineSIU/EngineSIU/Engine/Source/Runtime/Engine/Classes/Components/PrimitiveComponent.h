@@ -2,9 +2,20 @@
 #include "Components/SceneComponent.h"
 #include "Engine/OverlapInfo.h"
 
+// Begin Test
+namespace physx
+{
+    class PxShape;
+    class PxRigidDynamic;
+    class PxRigidStatic;
+    class PxJoint;
+}
+// End Test
+
 DECLARE_MULTICAST_DELEGATE_FiveParams(FComponentHitSignature, UPrimitiveComponent* /* HitComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, FVector /* NormalImpulse */, const FHitResult& /* Hit */);
 DECLARE_MULTICAST_DELEGATE_SixParams(FComponentBeginOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */, bool /* bFromSweep */, const FHitResult& /* Hit */);
 DECLARE_MULTICAST_DELEGATE_FourParams(FComponentEndOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */);
+
 
 class UPrimitiveComponent : public USceneComponent
 {
@@ -116,6 +127,16 @@ public:
     }
     
     FBoundingBox GetBoundingBox() const { return AABB; }
+
+
+    // Begin Test
+private:
+    physx::PxShape* BodyInstance; // 이거 이름이 마음에 안드는데
+
+public:
+    /** Return the BodySetup to use for this PrimitiveComponent (single body case) */
+    virtual class UBodySetup* GetBodySetup() { return NULL; }
+    // End Test
 };
 
 
@@ -131,7 +152,6 @@ struct FPredicateOverlapHasDifferentActor
         // MyOwnerPtr is always valid, so we don't need the IsValid() checks in the WeakObjectPtr comparison operator.
         return MyOwnerPtr != Info.OverlapInfo.HitActor;
     }
-
 private:
     const AActor* const MyOwnerPtr;
 };

@@ -1,7 +1,7 @@
 #include "ActorComponent.h"
 
 #include "GameFramework/Actor.h"
-
+#include "World/World.h"
 
 UObject* UActorComponent::Duplicate(UObject* InOuter)
 {
@@ -10,6 +10,7 @@ UObject* UActorComponent::Duplicate(UObject* InOuter)
     NewComponent->OwnerPrivate = OwnerPrivate;
     NewComponent->bIsActive = bIsActive;
     NewComponent->bAutoActive = bAutoActive;
+    NewComponent->bPhysicsStateCreated = bPhysicsStateCreated;
 
     return NewComponent;
 }
@@ -30,6 +31,7 @@ void UActorComponent::GetProperties(TMap<FString, FString>& OutProperties) const
     //Properties.Add(TEXT("bWantsInitializeComponent"), bWantsInitializeComponent ? TEXT("true") : TEXT("false"));
     Properties.Add(TEXT("bIsActive"), bIsActive ? TEXT("true") : TEXT("false"));
     Properties.Add(TEXT("bAutoActive"), bAutoActive ? TEXT("true") : TEXT("false"));
+    Properties.Add(TEXT("bPhysicsStateCreated"), bPhysicsStateCreated ? TEXT("true") : TEXT("false"));
     
 }
 
@@ -63,6 +65,12 @@ void UActorComponent::SetProperties(const TMap<FString, FString>& Properties)
         // 임시로 직접 설정 (만약 SetActive 함수가 없다면)
         this->bIsActive = TempStr->ToBool();
         // 주의: 이 경우 SetActive에 포함될 수 있는 부가 로직이 누락될 수 있습니다.
+    }    
+
+    TempStr = Properties.Find(TEXT("bPhysicsStateCreated"));
+    if (TempStr)
+    {
+        this->bPhysicsStateCreated = TempStr->ToBool();
     }
 }
 
@@ -84,6 +92,22 @@ void UActorComponent::UninitializeComponent()
 void UActorComponent::BeginPlay()
 {
     bHasBegunPlay = true;
+
+    OnPhysicsStateChanged.AddLambda(
+        [this](bool bPhysicsStateCreated)
+        {
+            if (bPhysicsStateCreated)
+            {
+                OnCreatePhysicsState();
+                UE_LOG(ELogLevel::Display, TEXT("Physics state was created for %s"), *GetName());
+            }
+            else
+            {
+                DestroyPhysicsState();
+                UE_LOG(ELogLevel::Display, TEXT("Physics state was destroyed for %s"), *GetName());
+            }
+        }
+    );
 }
 
 void UActorComponent::TickComponent(float DeltaTime)
@@ -130,6 +154,11 @@ void UActorComponent::DestroyComponent(bool bPromoteChildren)
         UninitializeComponent();
     }
 
+    if (bPhysicsStateCreated)
+    {
+        DestroyPhysicsState();
+    }
+
     OnComponentDestroyed();
 
     // 나중에 ProcessPendingDestroyObjects에서 실제로 제거됨
@@ -147,3 +176,80 @@ void UActorComponent::Deactivate()
     // TODO: Tick 멈추기
     bIsActive = false;
 }
+
+void UActorComponent::OnCreatePhysicsState()
+{
+    assert(ShouldCreatePhysicsState());
+    //assert(WorldPrivate->GetPhysicsScene());
+    assert(!bPhysicsStateCreated);
+    bPhysicsStateCreated = true;
+}
+
+void UActorComponent::OnDestroyPhysicsState()
+{
+    assert(bPhysicsStateCreated);
+    bPhysicsStateCreated = false;
+}
+
+
+void UActorComponent::CreatePhysicsState(bool bAllowDeferral)
+{
+    if (!bPhysicsStateCreated && ShouldCreatePhysicsState())
+    {
+        UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(this);
+
+        bool ShouldDefer = false;
+        if (UWorld* World = GetWorld())
+        {
+            if (bAllowDeferral && Primitive && !Primitive->GetGenerateOverlapEvents())
+            {
+                if (UBodySetup* Setup = Primitive->GetBodySetup())
+                {
+                    if (!Setup->bCreatedPhysicsMeshes)
+                    {
+                        ShouldDefer = true;
+                    }
+                }
+            }
+
+        }
+
+        if (ShouldDefer)
+        {
+            //WorldPrivate->GetPhysicsScene()->DeferPhysicsStateCreation(Primitive);
+        }
+        else
+        {
+            // Call virtual
+            OnCreatePhysicsState();
+
+            assert(bPhysicsStateCreated);
+
+            // Broadcast delegate
+            OnPhysicsStateChanged.Broadcast(true);
+        }
+    }
+
+}
+
+void UActorComponent::DestroyPhysicsState()
+{
+    if (bPhysicsStateCreated)
+    {
+        // Broadcast delegate
+        OnPhysicsStateChanged.Broadcast(false);
+
+        // Call virtual
+        OnDestroyPhysicsState();
+    }
+    else
+    {
+        UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(this);
+        //if (PrimitiveComponent && PrimitiveComponent->DeferredCreatePhysicsStateScene != nullptr)
+        //{
+        //    // We had to cache this scene because World ptr is null as we have unregistered already.
+        //    PrimitiveComponent->DeferredCreatePhysicsStateScene->RemoveDeferredPhysicsStateCreation(PrimitiveComponent);
+        //}
+    }
+}
+
