@@ -29,6 +29,7 @@ enum class EResourceType : uint8
     ERT_PostProcessCompositing,
     ERT_DownSample2x,
     ERT_DownSample4x,
+    ERT_DOF,
     ERT_MAX,
 };
 
