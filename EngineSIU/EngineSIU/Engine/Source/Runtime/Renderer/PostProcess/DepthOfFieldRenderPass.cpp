@@ -20,9 +20,14 @@ void FDepthOfFieldRenderPass::ClearRenderArr()
     FRenderPassBase::ClearRenderArr();
 }
 
-void FDepthOfFieldRenderPass::UpdateDOFConstant()
+void FDepthOfFieldRenderPass::UpdateDOFConstant(float ViewportWidth, float ViewportHeight)
 {
-  
+    DOFConstant.TextureSize = FVector2D(ViewportWidth, ViewportHeight);
+    DOFConstant.InvTextureSize = FVector2D(1.0f / ViewportWidth, 1.0f / ViewportHeight);
+
+    //나머지 설정은 ImGui에서 해주고있습니다.
+
+    BufferManager->UpdateConstantBuffer(TEXT("FDOFConstants"), DOFConstant);
 }
 
 void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -117,7 +122,7 @@ void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorVie
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1,
         &ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->SRV);  // 깊이 추가!
 
-    UpdateDOFConstant();
+    UpdateDOFConstant(DownSampledWidth, DownSampledHeight);
 
     ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"DownSampleVertexShader");
     ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"DownSamplePixelShader");

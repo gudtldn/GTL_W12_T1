@@ -47,6 +47,8 @@
 #include <Engine/FbxLoader.h>
 #include "Engine/Classes/Engine/AssetManager.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PostProcess/PostProcessRenderPass.h"
+#include "PostProcess/DepthOfFieldRenderPass.h"
 
 ControlEditorPanel::ControlEditorPanel()
 {
@@ -313,7 +315,72 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         ImGui::EndPopup();
     }
 
+
+
     ImGui::SameLine();
+    ImGui::PushFont(IconFont);
+    if (ImGui::Button("DOF", ButtonSize))
+    {
+        ImGui::OpenPopup("DOFControl");
+    }
+    ImGui::PopFont();
+
+    if (ImGui::BeginPopup("DOFControl"))
+    {
+        FDOFConstants& DOFConstant = FEngineLoop::Renderer.PostProcessRenderPass->GetDOFRenderPass()->GetDOFConstant();
+
+        ImGui::Text("Depth of Field Settings");
+        ImGui::Separator();
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##FocusDistance", &DOFConstant.FocusDistance, 0.01f, 0.0f, 1.0f, "Focus Dist: %.2f"))
+        {
+
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##BlurStrength", &DOFConstant.BlurStrength, 0.1f, 0.0f, 10.0f, "Blur Strength: %.2f"))
+        {
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##FocusRange", &DOFConstant.FocusRange, 0.01f, 0.0f, 1.0f, "Focus Range: %.2f"))
+        {
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##MaxBlurRadius", &DOFConstant.MaxBlurRadius, 0.1f, 0.0f, 50.0f, "Max Blur Radius: %.1f"))
+        {
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##FocalLength", &DOFConstant.FocalLength, 0.1f, 1.0f, 200.0f, "Focal Length: %.1f mm"))
+        {
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##Aperture", &DOFConstant.Aperture, 0.01f, 0.5f, 22.0f, "Aperture (F-stop): %.2f"))
+        {
+        }
+
+        ImGui::Separator();
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##NearPlane", &DOFConstant.NearPlane, 0.01f, 0.01f, 100.0f, "Near Plane: %.2f"))
+        {
+        }
+
+        ImGui::SetNextItemWidth(150.f);
+        if (ImGui::DragFloat("##FarPlane", &DOFConstant.FarPlane, 1.0f, 10.0f, 10000.0f, "Far Plane: %.0f"))
+        {
+        }
+
+        ImGui::EndPopup();
+    }
+
+
+    ImGui::SameLine();
+
 
     // @todo 적절한 이름으로 변경 바람
     ImGui::PushFont(IconFont);

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "RenderPassBase.h"
 
 
@@ -14,6 +14,8 @@ public:
     virtual ~FPostProcessRenderPass() override = default;
 
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    FDepthOfFieldRenderPass* GetDOFRenderPass() { return DepthOfFieldRenderPass; }
 
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;

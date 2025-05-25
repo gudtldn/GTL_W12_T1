@@ -67,26 +67,22 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
 float4 mainPS(PS_Input Input) : SV_TARGET
 {
     float2 uv = Input.UV;
-    
-    static const float FocusDistance = 0.5; // 초점 거리 (0~1 범위)
-    static const float BlurStrength = 2.0; // 블러 강도
 
-    
-    // 깊이 읽기 (드디어 사용!)
+    // 깊이 읽기
     float depth = DepthTexture.Sample(SceneSampler, uv).r;
-    
+
     // 원본 색상
     float4 color = SceneTexture.Sample(SceneSampler, uv);
-    
-    // 간단한 DOF 계산
+
+    // 초점 거리에서의 오차 계산
     float focusError = abs(depth - FocusDistance);
-    
-    if (focusError > 0.1)
+
+    // 초점 범위를 넘어가면 블러 처리
+    if (focusError > FocusRange)
     {
-        // 초점에서 벗어나면 블러 적용
         float4 blurColor = float4(0, 0, 0, 0);
-        float2 texelSize = float2(1.0 / 960.0, 1.0 / 540.0); // 다운샘플 크기
-        
+        float2 texelSize = InvTextureSize;
+
         // 간단한 박스 블러
         for (int x = -2; x <= 2; x++)
         {
@@ -96,8 +92,9 @@ float4 mainPS(PS_Input Input) : SV_TARGET
                 blurColor += SceneTexture.Sample(SceneSampler, uv + offset);
             }
         }
-        color = blurColor / 25.0; // 5x5 = 25 샘플
+
+        color = blurColor / 25.0; // 5x5 커널
     }
-    
+
     return color;
 }
