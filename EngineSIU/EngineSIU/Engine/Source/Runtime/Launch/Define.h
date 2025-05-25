@@ -472,6 +472,19 @@ struct FViewModeConstants
     FVector pad;
 };
 
+struct FDOFConstants
+{
+    float FocusDistance;        // 초점 거리
+    float BlurStrength;         // 블러 강도  
+    float FocusRange;           // 초점 범위
+    float NearPlane;            // Near plane
+
+    float FarPlane;             // Far plane
+    float FocalLength;          // 렌즈 초점거리 (mm)
+    float Aperture;             // F-Stop
+    float MaxBlurRadius;        // 최대 블러 반지름
+};
+
 struct FSubMeshConstants
 {
     float bIsSelectedSubMesh;
