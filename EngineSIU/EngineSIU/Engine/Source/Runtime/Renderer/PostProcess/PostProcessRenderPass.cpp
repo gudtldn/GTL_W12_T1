@@ -1,4 +1,4 @@
-﻿#include "PostProcessRenderPass.h"
+#include "PostProcessRenderPass.h"
 
 #include "CameraEffectRenderPass.h"
 #include "EngineBaseTypes.h"

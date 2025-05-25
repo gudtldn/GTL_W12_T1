@@ -1,4 +1,4 @@
-﻿#include "DepthOfFieldRenderPass.h"
+#include "DepthOfFieldRenderPass.h"
 
 #include "RendererHelpers.h"
 #include "UnrealClient.h"
@@ -68,6 +68,11 @@ void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorVie
     
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI_DownSample2x->RTV, nullptr);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &RenderTargetRHI_ScenePure->SRV);
+
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1,
+        &ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->SRV);  // 깊이 추가!
+
+
 
     ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"DownSampleVertexShader");
     ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"DownSamplePixelShader");
