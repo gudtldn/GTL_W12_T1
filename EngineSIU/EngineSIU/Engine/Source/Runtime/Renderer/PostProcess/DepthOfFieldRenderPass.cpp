@@ -65,24 +65,7 @@ void FDepthOfFieldRenderPass::PrepareUpSample(const std::shared_ptr<FEditorViewp
     FRenderTargetRHI* RT_Down = VR->GetRenderTarget(EResourceType::ERT_DownSample2x, 2);
     FRenderTargetRHI* RT_Full = VR->GetRenderTarget(EResourceType::ERT_DOF); // 스케일 1 명시
 
-    // 1) 풀 해상도 뷰포트 설정 (Viewport->GetD3DViewport() 대신)
-    D3D11_VIEWPORT fullVp = {};
-    fullVp.TopLeftX = 0;
-    fullVp.TopLeftY = 0;
-    fullVp.Width = VR->GetD3DViewport().Width;   // 실제 리사이즈된 너비
-    fullVp.Height = VR->GetD3DViewport().Height;  // 실제 리사이즈된 높이
-    fullVp.MinDepth = 0.0f;
-    fullVp.MaxDepth = 1.0f;
-    Graphics->DeviceContext->RSSetViewports(1, &fullVp);
-
-
-    D3D11_RECT fullRect = {
-        0, 0,
-        (LONG)VR->GetD3DViewport().Width,
-        (LONG)VR->GetD3DViewport().Height,
-    };
-    Graphics->DeviceContext->RSSetScissorRects(1, &fullRect);
-
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
 
     // 3) 풀 해상도 렌더 타겟 바인딩
     Graphics->DeviceContext->OMSetRenderTargets(1, &RT_Full->RTV, nullptr);

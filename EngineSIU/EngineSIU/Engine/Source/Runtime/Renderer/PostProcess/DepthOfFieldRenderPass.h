@@ -24,7 +24,7 @@ protected:
 
 
     void PrepareDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void CleanUpDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void CleanSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
     virtual void CreateResource() override;
 
