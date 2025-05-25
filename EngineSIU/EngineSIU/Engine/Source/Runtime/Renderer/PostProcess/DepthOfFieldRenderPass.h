@@ -20,7 +20,7 @@ protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     void PrepareUpSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
-
+    void CleanUpUpSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
 
     void PrepareDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
@@ -29,5 +29,5 @@ protected:
     virtual void CreateResource() override;
 
 private:
-    ID3D11SamplerState* Linear_Sampler;
+    ID3D11SamplerState* LinearSampler;
 };

@@ -483,6 +483,10 @@ struct FDOFConstants
     float FocalLength;          // 렌즈 초점거리 (mm)
     float Aperture;             // F-Stop
     float MaxBlurRadius;        // 최대 블러 반지름
+
+    FVector2D TextureSize;
+    FVector2D InvTextureSize; // 1/텍스처크기 (1/960, 1/540)
+
 };
 
 struct FSubMeshConstants

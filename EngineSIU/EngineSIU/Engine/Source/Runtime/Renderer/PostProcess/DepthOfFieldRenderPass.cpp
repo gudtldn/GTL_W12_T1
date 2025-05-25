@@ -22,24 +22,7 @@ void FDepthOfFieldRenderPass::ClearRenderArr()
 
 void FDepthOfFieldRenderPass::UpdateDOFConstant()
 {
-    FDOFConstants Constants;
-    {
-        // 🎯 DOF 핵심 파라미터들
-        Constants.FocusDistance = 0.5f;          // 중간 거리에 초점 (0~1 범위)
-        Constants.BlurStrength = 3.0f;           // 블러 강도 (1~5 추천)
-        Constants.FocusRange = 0.08f;            // 초점 범위 (작을수록 민감)
-
-        // 📷 카메라 설정들
-        Constants.NearPlane = 0.1f;              // 카메라 near plane
-        Constants.FarPlane = 1000.0f;            // 카메라 far plane
-
-        // 🔍 렌즈 물리학 파라미터들  
-        Constants.FocalLength = 85.0f;           // 85mm 망원렌즈 (인물용)
-        Constants.Aperture = 1.8f;               // f/1.8 (큰 조리개, 강한 DOF)
-        Constants.MaxBlurRadius = 25.0f;         // 최대 25픽셀까지 블러
-    }
-    //상수버퍼 업데이트
-    BufferManager->UpdateConstantBuffer(TEXT("FDOFConstants"), Constants);
+  
 }
 
 void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -56,7 +39,12 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
      */
     PrepareDownSample(Viewport);
     Graphics->DeviceContext->Draw(6, 0);
-    CleanUpDownSample(Viewport);
+    CleanSample(Viewport);
+
+    PrepareUpSample(Viewport);
+    Graphics->DeviceContext->Draw(6, 0);
+    CleanSample(Viewport);
+
     CleanUpRender(Viewport);
 }
 
@@ -70,35 +58,48 @@ void FDepthOfFieldRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewpor
 
 void FDepthOfFieldRenderPass::PrepareUpSample(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    if (!ViewportResource)
-    {
-        return;
-    }
+    // 0) 리소스 가져오기
+    FViewportResource* VR = Viewport->GetViewportResource();
+    if (!VR) return;
 
-    // 🔥 입력: 다운샘플된 DOF 결과 (960x540)
-    FRenderTargetRHI* RenderTargetRHI_DownSample2x = ViewportResource->GetRenderTarget(EResourceType::ERT_DownSample2x, 2);
+    FRenderTargetRHI* RT_Down = VR->GetRenderTarget(EResourceType::ERT_DownSample2x, 2);
+    FRenderTargetRHI* RT_Full = VR->GetRenderTarget(EResourceType::ERT_DOF); // 스케일 1 명시
 
-    // 🔥 출력: 풀 해상도 DOF 결과 (1920x1080)
-    FRenderTargetRHI* RenderTargetRHI_DOF = ViewportResource->GetRenderTarget(EResourceType::ERT_DOF);
+    // 1) 풀 해상도 뷰포트 설정 (Viewport->GetD3DViewport() 대신)
+    D3D11_VIEWPORT fullVp = {};
+    fullVp.TopLeftX = 0;
+    fullVp.TopLeftY = 0;
+    fullVp.Width = VR->GetD3DViewport().Width;   // 실제 리사이즈된 너비
+    fullVp.Height = VR->GetD3DViewport().Height;  // 실제 리사이즈된 높이
+    fullVp.MinDepth = 0.0f;
+    fullVp.MaxDepth = 1.0f;
+    Graphics->DeviceContext->RSSetViewports(1, &fullVp);
 
-    // 🔥 풀 해상도 뷰포트 설정
-    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
 
-    // 🔥 풀 해상도 렌더 타겟에 렌더링
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI_DOF->RTV, nullptr);
+    D3D11_RECT fullRect = {
+        0, 0,
+        (LONG)VR->GetD3DViewport().Width,
+        (LONG)VR->GetD3DViewport().Height,
+    };
+    Graphics->DeviceContext->RSSetScissorRects(1, &fullRect);
 
-    // 🔥 다운샘플된 DOF 결과를 입력으로 바인딩
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &RenderTargetRHI_DownSample2x->SRV);
 
-    // 🔥 업샘플링 셰이더 설정
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"UpSampleVertexShader");
-    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"UpSamplePixelShader");
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    // 3) 풀 해상도 렌더 타겟 바인딩
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RT_Full->RTV, nullptr);
+
+    // 4) 다운샘플 결과를 입력으로 바인딩
+    Graphics->DeviceContext->PSSetShaderResources(
+        (UINT)EShaderSRVSlot::SRV_Scene, 1, &RT_Down->SRV);
+
+    // 5) 셰이더와 IA 셋업
+    ID3D11VertexShader* VS = ShaderManager->GetVertexShaderByKey(L"UpSampleVertexShader");
+    ID3D11PixelShader* PS = ShaderManager->GetPixelShaderByKey(L"UpSamplePixelShader");
+    Graphics->DeviceContext->VSSetShader(VS, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(PS, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 🔥 선형 샘플러 사용 (부드러운 업샘플링)
+    // 6) 샘플러 설정
     Graphics->DeviceContext->PSSetSamplers(0, 1, &LinearSampler);
 }
 
@@ -116,7 +117,7 @@ void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorVie
     const FRect ViewportRect = Viewport->GetViewport()->GetRect();
     const float DownSampledWidth = static_cast<float>(FMath::FloorToInt(ViewportRect.Width / 2));
     const float DownSampledHeight = static_cast<float>(FMath::FloorToInt(ViewportRect.Height / 2));
-
+        
     D3D11_VIEWPORT Viewport_DownSample2x;
     Viewport_DownSample2x.Width = DownSampledWidth;
     Viewport_DownSample2x.Height = DownSampledHeight;
@@ -124,6 +125,7 @@ void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorVie
     Viewport_DownSample2x.MaxDepth = 1.0f;
     Viewport_DownSample2x.TopLeftX = 0.f;
     Viewport_DownSample2x.TopLeftY = 0.f;
+
     Graphics->DeviceContext->RSSetViewports(1, &Viewport_DownSample2x);
     
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI_DownSample2x->RTV, nullptr);
@@ -143,12 +145,14 @@ void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorVie
     Graphics->DeviceContext->PSSetSamplers(0, 1, &LinearSampler);
 }
 
-void FDepthOfFieldRenderPass::CleanUpDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FDepthOfFieldRenderPass::CleanSample(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, NullSRV);
+
+
 }
 
 void FDepthOfFieldRenderPass::CreateResource()

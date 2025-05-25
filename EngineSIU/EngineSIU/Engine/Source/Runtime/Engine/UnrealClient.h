@@ -135,7 +135,8 @@ public:
     /// ClearColor
     ////////
     std::array<float, 4> GetClearColor(EResourceType Type) const;
-    
+   
+
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
