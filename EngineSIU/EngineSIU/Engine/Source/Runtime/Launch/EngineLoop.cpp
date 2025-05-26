@@ -169,10 +169,12 @@ void FEngineLoop::Tick()
 
         const float DeltaTime = static_cast<float>(ElapsedTime / 1000.f);
 
-        FPhysicsEngine::Tick(DeltaTime);
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
+
+        FPhysicsEngine::Tick(DeltaTime);
+
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();

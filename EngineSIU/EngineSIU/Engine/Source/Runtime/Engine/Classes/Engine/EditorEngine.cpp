@@ -179,15 +179,17 @@ void UEditorEngine::StartPIE()
     ActiveWorld = PIEWorld;
     
     BindEssentialObjects();
-    
+
+    // Begin Test
+    // 여기가 아니라 EngineLoop::Init에서 해줘야 하는건가?
+    FPhysicsEngine::InitPhysX();
+    FPhysicsEngine::StartSimulatePVD();
+    // End Test
+
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
     
-    // Begin Test
-    // 여기가 아니라 EngineLoop::Init에서 해줘야 하는건가?
-    FPhysicsEngine::InitPhysX();
-    // End Test
 }
 
 void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset)
@@ -368,6 +370,9 @@ void UEditorEngine::BindEssentialObjects()
 
 void UEditorEngine::EndPIE()
 {
+    FPhysicsEngine::ShutdownPhysX();
+    FPhysicsEngine::EndSimulatePVD();
+
     if (PIEWorld)
     {
         this->ClearActorSelection(); // PIE World 기준 Select Actor 해제 

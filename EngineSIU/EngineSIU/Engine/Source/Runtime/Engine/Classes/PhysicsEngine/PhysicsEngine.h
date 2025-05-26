@@ -13,5 +13,8 @@ public:
     static void ShutdownPhysX();
 
     static void Tick(float DeltaTime);
+
+    static void StartSimulatePVD();
+    static void EndSimulatePVD();
 };
 
