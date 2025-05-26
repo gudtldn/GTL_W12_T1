@@ -229,13 +229,41 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, uint32 DownSam
 
 FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type, uint32 DownSampleScale)
 {
-    if (!HasRenderTarget(Type))
+    DownSampleScale = FMath::Max(DownSampleScale, 1U);
+
+    // 현재 예상되는 크기 계산
+    uint32 expectedWidth = static_cast<uint32>(D3DViewport.Width / static_cast<float>(DownSampleScale));
+    uint32 expectedHeight = static_cast<uint32>(D3DViewport.Height / static_cast<float>(DownSampleScale));
+
+    // 기존 렌더 타겟이 있는 경우 크기 확인
+    if (HasRenderTarget(Type))
     {
+        FRenderTargetRHI* existingRT = RenderTargets.Find(Type);
+        if (existingRT && existingRT->Texture2D)
+        {
+            D3D11_TEXTURE2D_DESC desc;
+            existingRT->Texture2D->GetDesc(&desc);
+
+            // 크기가 다르면 재생성
+            if (desc.Width != expectedWidth || desc.Height != expectedHeight)
+            {
+                // 기존 렌더 타겟 해제하고 새로 생성
+                if (FAILED(CreateRenderTarget(Type, DownSampleScale)))
+                {
+                    return nullptr;
+                }
+            }
+        }
+    }
+    else
+    {
+        // 렌더 타겟이 없으면 생성
         if (FAILED(CreateRenderTarget(Type, DownSampleScale)))
         {
             return nullptr;
         }
     }
+
     return RenderTargets.Find(Type);
 }
 

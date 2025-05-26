@@ -20,10 +20,10 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
     };
     float2 UVs[4] =
     {
-        float2(0, .5),
-        float2(.5, .5),
-        float2(0, 0),
-        float2(.5, 0)
+        float2(0, 1),
+    float2(1, 1),
+    float2(0, 0),
+    float2(1, 0)
     };
     uint Indices[6] =
     {
