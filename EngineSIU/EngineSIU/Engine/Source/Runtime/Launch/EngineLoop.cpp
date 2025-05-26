@@ -1,21 +1,19 @@
 #include "EngineLoop.h"
+
 #include "ImGuiManager.h"
+#include "SoundManager.h"
 #include "UnrealClient.h"
 #include "WindowsPlatformTime.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/EditorEngine.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "PhysicsEngine/PhysX/PhysX.h"
 #include "PropertyEditor/ViewportTypePanel.h"
+#include "Renderer/TileLightCullingPass.h"
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
 #include "World/World.h"
-
-#include "Engine/EditorEngine.h"
-#include "Renderer/DepthPrePass.h"
-#include "Renderer/TileLightCullingPass.h"
-
-#include "SoundManager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
@@ -90,6 +88,8 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     uint32 ClientHeight = 0;
     GetClientSize(ClientWidth, ClientHeight);
     LevelEditor->Initialize(ClientWidth, ClientHeight);
+
+    FPhysX::Initialize();
 
     GEngine = FObjectFactory::ConstructObject<UEditorEngine>(nullptr);
     GEngine->Init();
@@ -170,6 +170,7 @@ void FEngineLoop::Tick()
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
+        FPhysX::Tick(DeltaTime);
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();
@@ -216,6 +217,8 @@ void FEngineLoop::Exit()
     GraphicDevice.Release();
     
     GEngine->Release();
+
+    FPhysX::Release();
 
     delete UnrealEditor;
     delete BufferManager;

@@ -2,22 +2,21 @@
 
 #include "FbxLoader.h"
 #include "FObjLoader.h"
-#include "World/World.h"
 #include "Level.h"
-#include "Animation/SkeletalMeshActor.h"
-#include "GameFramework/Actor.h"
-#include "Classes/Engine/AssetManager.h"
-#include "Contents/Actors/SkeletalMeshActorTest.h"
-#include "UObject/UObjectIterator.h"
-#include "Animation/SkeletalMeshActor.h"
 #include "Actors/DirectionalLightActor.h"
+#include "Animation/SkeletalMeshActor.h"
+#include "Classes/Engine/AssetManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "GameFramework/Actor.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicsEngine/PhysX/PhysX.h"
 #include "PropertyEditor/ParticleViewerPanel.h"
 #include "UnrealEd/UnrealEd.h"
+#include "UObject/UObjectIterator.h"
 #include "World/ParticleViewerWorld.h"
+#include "World/World.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -177,7 +176,9 @@ void UEditorEngine::StartPIE()
     ActiveWorld = PIEWorld;
     
     BindEssentialObjects();
-    
+
+    FPhysX::StartSimulatePVD();
+
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
@@ -361,6 +362,8 @@ void UEditorEngine::BindEssentialObjects()
 
 void UEditorEngine::EndPIE()
 {
+    FPhysX::EndSimulatePVD();
+
     if (PIEWorld)
     {
         this->ClearActorSelection(); // PIE World 기준 Select Actor 해제 
