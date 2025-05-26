@@ -14,6 +14,9 @@ class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
 
+class UPhysicsAsset;
+class FPhysScene;
+
 enum class EAnimationMode : uint8
 {
     AnimationBlueprint,
@@ -126,9 +129,12 @@ protected:
 public:
     /** Array of FBodyInstance objects, storing per-instance state about about each body. */
     TArray<FBodyInstance*> Bodies;
-
     /** Array of FConstraintInstance structs, storing per-instance state about each constraint. */
     TArray<FConstraintInstance*> Constraints;
+    /** Physics-engine representation of aggregate which contains a physics asset instance with more than numbers of bodies. */
+    FPhysicsAggregateHandle Aggregate;
+
+    UPhysicsAsset* PhysicsAsset;
 
 private:
     FPoseContext BonePoseContext;
@@ -156,7 +162,19 @@ public:
     
     void SetAnimInstanceClass(class UClass* NewClass);
 
-private:
-    TArray<physx::PxRigidDynamic*> Bodies;
-    TArray<physx::PxJoint*> Constraints;
+    /** Create any physics engine information for this component */
+    virtual void CreatePhysicsState(bool bAllowDeferral = false) override;
+    /** Shut down any physics engine structure for this component */
+    virtual void DestroyPhysicsState() override;
+
+    /** Instantiates only the bodies given a physics asset, not the constraints. The Created bodies are owned by the calling code and must be freed when necessary.*/
+    void InstantiatePhysicsAssetBodies(
+        const UPhysicsAsset& PhysAsset,
+        TArray<FBodyInstance*>& OutBodies,
+        FPhysScene* PhysScene = nullptr,
+        USkeletalMeshComponent* OwningComponent = nullptr,
+        int32 UseRootBodyIndex = INDEX_NONE,
+        const FPhysicsAggregateHandle& UseAggregate = FPhysicsAggregateHandle()
+    ) const;
+
 };

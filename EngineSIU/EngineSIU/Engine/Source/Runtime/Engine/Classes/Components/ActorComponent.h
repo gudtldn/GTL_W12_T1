@@ -76,9 +76,9 @@ public:
     virtual void OnDestroyPhysicsState();
 
     /** Create any physics engine information for this component */
-    void CreatePhysicsState(bool bAllowDeferral = false);
+    virtual void CreatePhysicsState(bool bAllowDeferral = false);
     /** Shut down any physics engine structure for this component */
-    void DestroyPhysicsState();
+    virtual void DestroyPhysicsState();
 
     /** Return true if CreatePhysicsState() should be called.
         Ideally CreatePhysicsState() should always succeed if this returns true, but this isn't currently the case */

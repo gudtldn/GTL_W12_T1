@@ -629,3 +629,27 @@ void UPrimitiveComponent::ClearComponentOverlaps(bool bDoNotifies, bool bSkipNot
         }
     }
 }
+
+void UPrimitiveComponent::CreatePhysicsState(bool bAllowDeferral)
+{
+}
+
+void UPrimitiveComponent::DestroyPhysicsState()
+{
+}
+
+bool UPrimitiveComponent::ShouldCreatePhysicsState() const
+{
+    return false;
+}
+
+bool UPrimitiveComponent::IsKinematic() const
+{
+    if (BodyInstance.RigidActor != nullptr && BodyInstance.RigidActor->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
+    {
+        physx::PxRigidDynamic* DynActor = static_cast<physx::PxRigidDynamic*>(BodyInstance.RigidActor);
+        return DynActor->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC;
+    }
+
+    return BodyInstance.IsInstanceKinematic();
+}

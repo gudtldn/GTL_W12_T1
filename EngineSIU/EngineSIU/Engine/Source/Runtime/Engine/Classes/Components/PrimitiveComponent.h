@@ -2,16 +2,7 @@
 #include "Components/SceneComponent.h"
 #include "Engine/OverlapInfo.h"
 #include "PhysicsEngine/BodyInstance.h"
-
-// Begin Test
-namespace physx
-{
-    class PxShape;
-    class PxRigidDynamic;
-    class PxRigidStatic;
-    class PxJoint;
-}
-// End Test
+#include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 
 DECLARE_MULTICAST_DELEGATE_FiveParams(FComponentHitSignature, UPrimitiveComponent* /* HitComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, FVector /* NormalImpulse */, const FHitResult& /* Hit */);
 DECLARE_MULTICAST_DELEGATE_SixParams(FComponentBeginOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */, bool /* bFromSweep */, const FHitResult& /* Hit */);
@@ -137,13 +128,29 @@ public:
     FBoundingBox GetBoundingBox() const { return AABB; }
 
 
-    // Begin Test
-private:
-    physx::PxShape* BodyInstance; // 이거 이름이 마음에 안드는데
-
 public:
+    /** Create any physics engine information for this component */
+    virtual void CreatePhysicsState(bool bAllowDeferral = false) override;
+    /** Shut down any physics engine structure for this component */
+    virtual void DestroyPhysicsState() override;
+    /** Return true if CreatePhysicsState() should be called.
+        Ideally CreatePhysicsState() should always succeed if this returns true, but this isn't currently the case */
+    virtual bool ShouldCreatePhysicsState() const override;
+
+    bool IsKinematic() const;
+
     /** Return the BodySetup to use for this PrimitiveComponent (single body case) */
     virtual class UBodySetup* GetBodySetup() { return NULL; }
+
+    virtual bool ShouldSimulatePhysics() const { return bShouldSimulate; }
+
+private:
+    // Begin Test
+    // FIX-ME
+    //UPROPERTY(EditAnywhere | LuaReadOnly, ({ Category = "PhysicsSimulate" })
+    //    bool, bShouldSimulate, = false;
+    //)
+    bool bShouldSimulate;
     // End Test
 };
 

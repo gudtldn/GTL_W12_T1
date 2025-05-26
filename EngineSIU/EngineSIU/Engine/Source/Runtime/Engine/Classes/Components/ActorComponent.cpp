@@ -2,6 +2,7 @@
 
 #include "GameFramework/Actor.h"
 #include "World/World.h"
+#include "PhysicsEngine/BodySetup.h"
 
 UObject* UActorComponent::Duplicate(UObject* InOuter)
 {
@@ -98,11 +99,13 @@ void UActorComponent::BeginPlay()
         {
             if (bPhysicsStateCreated)
             {
+                // 여기에서 직접 호출하는 거은 재귀 호출의 위험이 있음. 수정할 예정.
                 OnCreatePhysicsState();
                 UE_LOG(ELogLevel::Display, TEXT("Physics state was created for %s"), *GetName());
             }
             else
             {
+                // 여기에서 직접 호출하는 거은 재귀 호출의 위험이 있음. 수정할 예정.
                 DestroyPhysicsState();
                 UE_LOG(ELogLevel::Display, TEXT("Physics state was destroyed for %s"), *GetName());
             }

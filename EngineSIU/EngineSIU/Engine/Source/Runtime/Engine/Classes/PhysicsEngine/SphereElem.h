@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ShapeElem.h"
 #include "UObject/ObjectMacros.h"
 
@@ -15,4 +15,6 @@ public:
     FKSphereElem& operator=(const FKSphereElem&) = default;
     FKSphereElem(FKSphereElem&&) = default;
     FKSphereElem& operator=(FKSphereElem&&) = default;
+
+    float Radius;
 };

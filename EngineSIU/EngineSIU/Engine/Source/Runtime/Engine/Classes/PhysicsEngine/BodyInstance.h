@@ -1,8 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "BodyInstanceCore.h"
+#include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 
 class UPrimitiveComponent;
-
+class FPhysicsScene;
+class UBodySetup;
+class FPhysScene;
 
 struct FBodyInstance : FBodyInstanceCore
 {
@@ -17,6 +20,29 @@ public:
     FBodyInstance(FBodyInstance&&) = default;
     FBodyInstance& operator=(FBodyInstance&&) = default;
 
+    bool InitBody(
+        AActor* InOwningActor,
+        UPrimitiveComponent* InOwningComponent,
+        UBodySetup* InBodySetup,
+        FPhysScene* InScene,
+        const FTransform& InInitialTransform,
+        const FPhysicsAggregateHandle& InAggregate = FPhysicsAggregateHandle()
+    );
+     
+    // Terminate
+    void TermBody();
+
 public:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
+    TWeakObjectPtr<FPhysicsScene> PhysicsScene;
+
+    physx::PxRigidActor* RigidActor;
+
+    bool IsInstanceKinematic() const;
+
+    physx::PxTransform ConvertUnrealTransformToPx(const FTransform& UnrealTransform);
+
+protected:
+    bool bSimulatePhysics;
+    bool bBodyInitialized;
 };

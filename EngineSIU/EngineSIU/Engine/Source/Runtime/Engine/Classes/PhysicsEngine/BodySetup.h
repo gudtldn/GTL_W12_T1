@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AggregateGeom.h"
 #include "BodySetupCore.h"
 
@@ -16,4 +16,7 @@ public:
         EditAnywhere, ({ .Category = "BodySetup", .DisplayName = "Primitives" }),
         FKAggregateGeom, AggGeom, ;
     )
+
+    uint8 bCreatedPhysicsMeshes : 1;
+
 };
