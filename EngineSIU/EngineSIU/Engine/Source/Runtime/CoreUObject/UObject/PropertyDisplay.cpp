@@ -923,6 +923,15 @@ void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
     ResolvedProperty->DisplayInImGui(Object);
 }
 
+void FUnresolvedPtrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+{
+    if (Type == EPropertyType::Unknown)
+    {
+        return;
+    }
+    ResolvedProperty->DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+}
+
 void UMaterialProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));

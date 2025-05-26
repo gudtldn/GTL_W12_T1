@@ -694,56 +694,62 @@ protected:
 
                 ImGui::Text("Num of Elements: %d", Data->Num());
 
-                ImGui::SameLine();
-                ImGui::PushFont(IconFont);
-                if (ImGui::Button("\ue9c8"))
+                if (!HasAnyFlags(Flags, EditFixedSize))
                 {
-                    Data->AddDefaulted();
-                    Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
-                }
-                ImGui::PopFont();
-                ImGui::SetItemTooltip("Add Element");
+                    ImGui::SameLine();
+                    ImGui::PushFont(IconFont);
+                    if (ImGui::Button("\ue9c8"))
+                    {
+                        Data->AddDefaulted();
+                        Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
+                    }
+                    ImGui::PopFont();
+                    ImGui::SetItemTooltip("Add Element");
 
-                ImGui::SameLine();
-                ImGui::PushFont(IconFont);
-                if (ImGui::Button("\ue9f6"))
-                {
-                    Data->Empty();
-                    Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayClear};
+                    ImGui::SameLine();
+                    ImGui::PushFont(IconFont);
+                    if (ImGui::Button("\ue9f6"))
+                    {
+                        Data->Empty();
+                        Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayClear};
+                    }
+                    ImGui::PopFont();
+                    ImGui::SetItemTooltip("Remove All Elements");
                 }
-                ImGui::PopFont();
-                ImGui::SetItemTooltip("Remove All Elements");
 
                 TQueue<TPair<EArrayElementOption, int32>> OptionQueue;
                 for (int32 Index = 0; Index < Data->Num(); ++Index)
                 {
                     ElementProperty->DisplayRawDataInImGui(std::format("Idx [{}]", Index).c_str(), &((*Data)[Index]), OwnerObject);
 
-                    std::string PopupLabel = std::format("ArrayElementOption##{}", Index);
-                    ImGui::SameLine();
-                    if (ImGui::Button(std::format("...##{}", Index).c_str()))
+                    if (!HasAnyFlags(Flags, EditFixedSize))
                     {
-                        ImGui::OpenPopup(PopupLabel.c_str());
-                    }
+                        std::string PopupLabel = std::format("ArrayElementOption##{}", Index);
+                        ImGui::SameLine();
+                        if (ImGui::Button(std::format("...##{}", Index).c_str()))
+                        {
+                            ImGui::OpenPopup(PopupLabel.c_str());
+                        }
 
-                    if (ImGui::BeginPopup(PopupLabel.c_str()))
-                    {
-                        if (ImGui::Selectable("Insert"))
+                        if (ImGui::BeginPopup(PopupLabel.c_str()))
                         {
-                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Insert, Index));
-                            Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
+                            if (ImGui::Selectable("Insert"))
+                            {
+                                OptionQueue.Enqueue(MakePair(EArrayElementOption::Insert, Index));
+                                Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
+                            }
+                            else if (ImGui::Selectable("Remove"))
+                            {
+                                OptionQueue.Enqueue(MakePair(EArrayElementOption::Remove, Index));
+                                Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayRemove};
+                            }
+                            else if (ImGui::Selectable("Duplicate"))
+                            {
+                                OptionQueue.Enqueue(MakePair(EArrayElementOption::Duplicate, Index));
+                                Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
+                            }
+                            ImGui::EndPopup();
                         }
-                        else if (ImGui::Selectable("Remove"))
-                        {
-                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Remove, Index));
-                            Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayRemove};
-                        }
-                        else if (ImGui::Selectable("Duplicate"))
-                        {
-                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Duplicate, Index));
-                            Event = FPropertyChangedEvent{const_cast<TArrayProperty*>(this), OwnerObject, EPropertyChangeType::ArrayAdd};
-                        }
-                        ImGui::EndPopup();
                     }
                 }
 
@@ -1255,6 +1261,7 @@ struct FUnresolvedPtrProperty : public FProperty
     FUnresolvedPtrProperty& operator=(FUnresolvedPtrProperty&&) = delete;
 
     virtual void DisplayInImGui(UObject* Object) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
     virtual void Resolve() override;
 };
 
