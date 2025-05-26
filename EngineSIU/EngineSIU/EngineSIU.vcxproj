@@ -300,6 +300,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocity.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.cpp"/>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.cpp"/>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.cpp"/>
@@ -587,7 +588,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.h"/>
+      <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstanceCore.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h"/>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.h" />
