@@ -54,8 +54,12 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
 
     const uint64 ShowFlag = Viewport->GetShowFlag();
 
-   
-    EResourceType ERTType= (ShowFlag & EEngineShowFlags::SF_DOF)? EResourceType::ERT_DOF:EResourceType::ERT_Scene;
+    
+    //Unlit일때는 DOF 적용 안함
+    EResourceType ERTType= 
+        (ShowFlag & EEngineShowFlags::SF_DOF) && (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit) ?
+        EResourceType::ERT_DOF
+        :EResourceType::ERT_Scene;
 
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(ERTType)->SRV);
 
