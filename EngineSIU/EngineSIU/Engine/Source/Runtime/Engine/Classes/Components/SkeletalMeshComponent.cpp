@@ -18,6 +18,7 @@
 #include "PhysicsEngine/BodySetup.h" 
 #include "PhysicsEngine/BodyInstance.h"
 #include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
+#include "PhysicsEngine/PhysicsEngine.h"
 #include "PhysicsEngine/PhysScene.h"
 #include "World/World.h"
 
@@ -502,7 +503,10 @@ void USkeletalMeshComponent::CreatePhysicsState(bool bAllowDeferral)
         {
             if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
             {
-                 Aggregate = PhysScene->CreateAggregate(MaxBodiesInPhysicsAsset, false);
+                 int32 NumBodiesInAsset = PhysicsAsset->BodySetup.Num();
+                 if (NumBodiesInAsset == 0) NumBodiesInAsset = 1;
+
+                 Aggregate = PhysScene->CreateAggregate(NumBodiesInAsset, false);
             }
         }
 
@@ -540,7 +544,7 @@ void USkeletalMeshComponent::DestroyPhysicsState()
         {
             if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
             {
-                // PhysScene->ReleaseAggregate(Aggregate);
+                PhysScene->ReleaseAggregate(Aggregate);
             }
             Aggregate.Reset();
         }
@@ -607,7 +611,7 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
             continue;
         }
 
-        FTransform BoneTransform = GetBoneTransform(BoneIndex);
+        FTransform BoneTransform = GetBoneTransform(BoneIndex, true);// Component Space
         NewBodyInstance->SetRelativeTransform(BoneTransform * GetComponentToWorld()); // 월드 트랜스폼으로
 
         // 5. FBodyInstance를 통해 실제 물리 객체(PhysX Actor 및 Shape) 생성
@@ -634,11 +638,6 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
             delete NewBodyInstance;
         }
 
-        UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(this);
-        NewBodyInstance->InitBody(GetOwner(), Prim, NewBodyInstance->BodySetup, ResolvedPhysScene, BoneTransform * GetComponentToWorld(), UseAggregate);
-        OutBodies.Add(NewBodyInstance);
-
-
         // 6. (옵션) 생성된 바디를 전역 Aggregate에 추가
         //    FBodyInstance::InitBody 내부에서 UseAggregate가 유효하면 자동으로 추가되도록 설계하거나,
         //    여기서 명시적으로 Aggregate에 추가하는 API를 호출할 수 있습니다.
@@ -652,6 +651,15 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
     // 참고: OutBodies에 추가된 FBodyInstance* 들은 호출한 쪽에서 소유권을 가지고 관리해야 합니다.
     // (예: USkeletalMeshComponent의 멤버 TArray<FBodyInstance*> Bodies; 에 저장하고,
     // DestroyPhysicsState에서 각 FBodyInstance의 TermBody() 호출 후 delete)
+}
+
+void USkeletalMeshComponent::InstantiatePhysicsAssetConstraints(const UPhysicsAsset& PhysAsset, const TArray<FBodyInstance*>& InBodies, TArray<FConstraintInstance*>& OutConstraints, FPhysScene* PhysScene)
+{
+
+}
+
+void USkeletalMeshComponent::ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints)
+{
 }
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
@@ -826,4 +834,38 @@ void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
     {
         SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
     }
+}
+
+
+FTransform USkeletalMeshComponent::GetBoneTransform(int32 BoneIndex, bool bInComponentSpace) const
+{
+    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+        if (BoneIndex >= 0 && BoneIndex < RefSkeleton.GetRawRefBoneInfo().Num())
+        {
+            // 애니메이션이 적용된 현재 본의 로컬 스페이스 트랜스폼을 사용해야 함
+            // BonePoseContext.Pose[BoneIndex] 는 로컬 스페이스 트랜스폼임.
+            // 이를 컴포넌트 스페이스 또는 월드 스페이스로 변환해야 함.
+
+            // 방법 1: BonePoseContext.Pose를 기반으로 계층적으로 계산
+            FTransform BoneCompSpaceTransform = BonePoseContext.Pose[BoneIndex];
+            int32 ParentIndex = RefSkeleton.GetRawRefBoneInfo()[BoneIndex].ParentIndex;
+            while (ParentIndex != INDEX_NONE)
+            {
+                BoneCompSpaceTransform = BoneCompSpaceTransform * BonePoseContext.Pose[ParentIndex];
+                ParentIndex = RefSkeleton.GetRawRefBoneInfo()[ParentIndex].ParentIndex;
+            }
+
+            if (bInComponentSpace)
+            {
+                return BoneCompSpaceTransform;
+            }
+            else // 월드 스페이스
+            {
+                return BoneCompSpaceTransform * GetComponentToWorld();
+            }
+        }
+    }
+    return FTransform::Identity; // 실패 시 단위행렬 반환
 }

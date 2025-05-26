@@ -1,32 +1,26 @@
 #pragma once
 
 #include <PxPhysicsAPI.h>
-#include <d3d11.h>
 #include <DirectXMath.h>
+#include "Container/Array.h"
+#include "UObject/ObjectMacros.h"
 
 using namespace DirectX;
+using namespace physx;
 
-namespace physx
+// Begin Test
+// FIX-ME
+extern physx::PxDefaultAllocator       gAllocator;
+extern physx::PxDefaultErrorCallback   gErrorCallback;
+extern physx::PxFoundation* gFoundation;
+extern physx::PxPhysics* gPhysics;
+extern physx::PxScene* gScene;
+extern physx::PxMaterial* gMaterial;
+extern physx::PxDefaultCpuDispatcher* gDispatcher;
+// End Test
+
+struct FGameObject 
 {
-    class PxShape;
-    class PxRigidDynamic;
-    class PxRigidStatic;
-    class PxJoint;
-    class PxAggregate;
-    class PxActor;
-    class PxScene;
-    class PxPhysics;
-};
-
-physx::PxDefaultAllocator       gAllocator;
-physx::PxDefaultErrorCallback   gErrorCallback;
-physx::PxFoundation*            gFoundation = nullptr;
-physx::PxPhysics*               gPhysics = nullptr;
-physx::PxScene*                 gScene = nullptr;
-physx::PxMaterial*              gMaterial = nullptr; // 이거를 안썼네 
-physx::PxDefaultCpuDispatcher*  gDispatcher = nullptr;
-
-struct GameObject {
     physx::PxRigidDynamic* rigidBody = nullptr;
     XMMATRIX worldMatrix = XMMatrixIdentity();
     void UpdateFromPhysics() {
@@ -36,28 +30,14 @@ struct GameObject {
     }
 };
 
-TArray<GameObject> gObjects;
+extern TArray<FGameObject> gObjects;
 
-void InitPhysX() {
-    gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
-    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale());
-    gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-
-    physx::PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
-    sceneDesc.gravity = physx::PxVec3(0, -9.81f, 0);
-    gDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
-    sceneDesc.cpuDispatcher = gDispatcher;
-    sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
-    gScene = gPhysics->createScene(sceneDesc);
-}
 
 struct FPhysicsAggregateHandle
 {
-private:
-    physx::PxAggregate* Handle;
-
 public:
-    FPhysicsAggregateHandle() : Handle(nullptr) {}
+    FPhysicsAggregateHandle() = default;
+
     explicit FPhysicsAggregateHandle(physx::PxAggregate* InAggregate) : Handle(InAggregate) {}
 
     physx::PxAggregate* GetUnderlyingAggregate() const { return Handle; }
@@ -74,4 +54,6 @@ public:
     bool operator!=(const FPhysicsAggregateHandle& Other) const { return Handle != Other.Handle; }
 
     void Reset() { Handle = nullptr; }
+private:
+    physx::PxAggregate* Handle;
 };

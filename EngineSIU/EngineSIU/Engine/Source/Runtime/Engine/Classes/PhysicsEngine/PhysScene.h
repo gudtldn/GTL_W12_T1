@@ -1,9 +1,8 @@
-// PhysicsInterfaceDeclaresCore.h
-
 #pragma once
 
 #include "Core/Container/Array.h"
 #include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
+#include "UObject/ObjectMacros.h"
 
 struct FPhysicsAggregateHandle;
 class UPrimitiveComponent;
@@ -17,8 +16,8 @@ private:
     TArray<UPrimitiveComponent*> DeferredDestructionQueue;
 
 public:
-    explicit FPhysScene(physx::PxScene* InPxScene);
-    ~FPhysScene();
+    FPhysScene() = default;
+    FPhysScene(physx::PxScene* InPxScene);
 
     physx::PxScene* GetPxScene() const { return PxSceneInstance; }
 

@@ -1,9 +1,9 @@
 #pragma once
 #include "BodyInstanceCore.h"
+
 #include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 
 class UPrimitiveComponent;
-class FPhysicsScene;
 class UBodySetup;
 class FPhysScene;
 
@@ -34,7 +34,7 @@ public:
 
 public:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
-    TWeakObjectPtr<FPhysicsScene> PhysicsScene;
+    TWeakObjectPtr<FPhysScene> PhysicsScene;
 
     physx::PxRigidActor* RigidActor;
 

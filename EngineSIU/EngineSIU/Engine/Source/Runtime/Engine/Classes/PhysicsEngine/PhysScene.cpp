@@ -1,13 +1,8 @@
 #include "PhysScene.h"
-#include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 
-FPhysScene::FPhysScene(physx::PxScene* InPxScene)
-{
-}
-
-FPhysScene::~FPhysScene()
-{
-}
+//FPhysScene::FPhysScene(physx::PxScene* InPxScene)
+//{
+//}
 
 void FPhysScene::Simulate(float DeltaTime)
 {
@@ -27,6 +22,16 @@ bool FPhysScene::FetchResults(bool Block)
 
 FPhysicsAggregateHandle FPhysScene::CreateAggregate(uint32 MaxActors, bool EnableSelfCollision)
 {
+    physx::PxPhysics* PxPhysicsSDK = gPhysics;
+    if (PxSceneInstance && PxPhysicsSDK)
+    {
+        physx::PxAggregate* NewPxAgg = PxPhysicsSDK->createAggregate(MaxActors, EnableSelfCollision);
+        if (NewPxAgg)
+        {
+            PxSceneInstance->addAggregate(*NewPxAgg);
+            return FPhysicsAggregateHandle(NewPxAgg);
+        }
+    }
     return FPhysicsAggregateHandle();
 }
 

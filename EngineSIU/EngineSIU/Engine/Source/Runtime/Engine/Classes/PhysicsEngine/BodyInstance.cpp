@@ -1,12 +1,11 @@
 
 #include "BodyInstance.h"
 #include "PhysicsEngine/PhysScene.h"
-#include "Components/PrimitiveComponent.h"
 #include "PhysicsEngine/AggregateGeom.h"
 #include "PhysicsEngine/BodySetupCore.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "Components/PrimitiveComponent.h"
 
-// #include <PxPhysicsAPI.h>
 
 bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwnerComponent, UBodySetup* InBodySetup, FPhysScene* InScene, const FTransform& InInitialTransform, const FPhysicsAggregateHandle& InAggregate)
 {
@@ -25,8 +24,8 @@ bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwner
     this->BodySetup = InBodySetup;
     this->OwnerComponent = InOwnerComponent;
     this->bSimulatePhysics = InOwnerComponent->ShouldSimulatePhysics();
-
     physx::PxPhysics* PxSDK = gPhysics;
+
     if (!PxSDK)
     {
         UE_LOG(ELogLevel::Error, TEXT("FBodyInstance::InitBody: Failed to get PhysX SDK instance."));
@@ -71,13 +70,13 @@ bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwner
         physx::PxSphereGeometry PxGeom(SphereElem.Radius);
         // SphereElem.Center는 로컬 트랜스폼으로 적용해야 함
         physx::PxTransform PxShapeLocalPose = ConvertUnrealTransformToPx(SphereElem.GetRelativeTransform());
-        physx::PxShape* NewShape = PxSDK->createShape(PxGeom, *PxMat, true);
+        physx::PxShape* NewShape = PxSDK->createShape(PxGeom, *gMaterial, true);
         if (NewShape)
         {
             NewShape->setLocalPose(PxShapeLocalPose);
             // 충돌 필터 데이터 설정 (BodySetup 또는 컴포넌트의 콜리전 설정 기반)
-            // NewShape->setSimulationFilterData(...);
-            // NewShape->setQueryFilterData(...);
+            //NewShape->setSimulationFilterData(...);
+            //NewShape->setQueryFilterData(...);
             NewShape->userData = this;
 
             RigidActor->attachShape(*NewShape);
@@ -145,6 +144,11 @@ void FBodyInstance::TermBody()
 
 bool FBodyInstance::IsInstanceKinematic() const
 {
+    if (RigidActor && RigidActor->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
+    {
+        physx::PxRigidDynamic* DynActor = static_cast<physx::PxRigidDynamic*>(RigidActor);
+        return (DynActor->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC);
+    }
     return false;
 }
 

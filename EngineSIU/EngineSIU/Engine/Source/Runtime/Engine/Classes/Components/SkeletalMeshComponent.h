@@ -102,7 +102,7 @@ public:
     int32 GetLoopEndFrame() const;
 
     void SetLoopEndFrame(int32 InLoopEndFrame);
-    
+
     bool bIsAnimationEnabled() const { return bPlayAnimation; }
     
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
@@ -176,5 +176,17 @@ public:
         int32 UseRootBodyIndex = INDEX_NONE,
         const FPhysicsAggregateHandle& UseAggregate = FPhysicsAggregateHandle()
     ) const;
+
+    void InstantiatePhysicsAssetConstraints(
+        const UPhysicsAsset& PhysAsset,
+        const TArray<FBodyInstance*>& InBodies,
+        TArray<FConstraintInstance*>& OutConstraints,
+        FPhysScene* PhysScene
+    );
+
+    void ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints);
+
+
+    FTransform GetBoneTransform(int32 BoneIndex, bool bInComponentSpace) const;
 
 };

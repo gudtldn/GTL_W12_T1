@@ -6,7 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "World/World.h"
 
-#include "ThirdParty/PhysX/Include/PxShape.h"
+//#include "ThirdParty/PhysX/Include/PxShape.h"
+#include "PhysicsEngine/BodyInstance.h"
 
 // 언리얼 엔진에서도 여기에서 FOverlapInfo의 생성자를 정의하고 있음.
 FOverlapInfo::FOverlapInfo(UPrimitiveComponent* InComponent, int32 InBodyIndex)
@@ -632,14 +633,18 @@ void UPrimitiveComponent::ClearComponentOverlaps(bool bDoNotifies, bool bSkipNot
 
 void UPrimitiveComponent::CreatePhysicsState(bool bAllowDeferral)
 {
+    Super::CreatePhysicsState(bAllowDeferral);
 }
 
 void UPrimitiveComponent::DestroyPhysicsState()
 {
+    Super::DestroyPhysicsState();
 }
 
 bool UPrimitiveComponent::ShouldCreatePhysicsState() const
 {
+    Super::ShouldCreatePhysicsState();
+    
     return false;
 }
 
