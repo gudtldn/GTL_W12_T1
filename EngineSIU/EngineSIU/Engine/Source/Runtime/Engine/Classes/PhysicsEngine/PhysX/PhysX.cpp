@@ -73,10 +73,12 @@ void FPhysX::Initialize()
 
 void FPhysX::Tick(float DeltaTime)
 {
+#if _DEBUG
     if (!bPIEMode)
     {
         return;
     }
+#endif
 
     // TODO: FixedTime 변수 위치 옮기기
     static float AccumulatedTime = 0.0f;
