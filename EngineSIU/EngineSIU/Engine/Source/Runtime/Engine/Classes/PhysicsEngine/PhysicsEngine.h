@@ -18,7 +18,6 @@ public:
     static void EndSimulatePVD();
 
 private:
-
     TArray<UPrimitiveComponent*> DeferredCreationQueue;
     TArray<UPrimitiveComponent*> DeferredDestructionQueue;
 

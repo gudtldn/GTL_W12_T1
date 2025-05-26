@@ -15,7 +15,6 @@ class UAnimInstance;
 class UAnimSingleNodeInstance;
 
 class UPhysicsAsset;
-class FPhysScene;
 
 enum class EAnimationMode : uint8
 {
@@ -184,7 +183,7 @@ public:
         TArray<FConstraintInstance*>& OutConstraints,
         physx::PxScene* PhysScene
     );
-
+    void ReleasePhysicsAssetBodies();
     void ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints);
 
     FTransform GetBoneTransform(int32 BoneIndex, bool bInComponentSpace) const;

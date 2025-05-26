@@ -506,19 +506,8 @@ void USkeletalMeshComponent::CreatePhysicsState(bool bAllowDeferral)
     {
         if (Bodies.Num() > 0)
         {
-            //ReleasePhysicsAssetBodies();
+            ReleasePhysicsAssetBodies();
         }
-
-        //if (!Aggregate.IsValid())
-        //{
-        //    if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
-        //    {
-        //         int32 NumBodiesInAsset = PhysicsAsset->BodySetup.Num();
-        //         if (NumBodiesInAsset == 0) NumBodiesInAsset = 1;
-
-        //         Aggregate = PhysScene->CreateAggregate(NumBodiesInAsset, false);
-        //    }
-        //}
 
         if (gScene)
         {
@@ -641,6 +630,10 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
 }
 
 void USkeletalMeshComponent::InstantiatePhysicsAssetConstraints(const UPhysicsAsset& PhysAsset, const TArray<FBodyInstance*>& InBodies, TArray<FConstraintInstance*>& OutConstraints, physx::PxScene* PhysScene)
+{
+}
+
+void USkeletalMeshComponent::ReleasePhysicsAssetBodies()
 {
 }
 
@@ -897,16 +890,15 @@ void USkeletalMeshComponent::CreatePhysicsBodies()
 
         if (BoneInfos.Num() > 0)
         {
-            for (const FMeshBoneInfo& BoneInfo : BoneInfos)
+            for (int32 Idx = 0; Idx < RefSkeleton.RawRefBoneInfo.Num(); ++Idx)
             {
                 UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(PhysicsAsset);
-                NewBodySetup->BoneName = BoneInfo.Name;
-
+                NewBodySetup->BoneName = BoneInfos[Idx].Name;
+                
                 NewBodySetup->AggGeom.SphereElems.AddDefaulted();
                 FKSphereElem& SphereElem = NewBodySetup->AggGeom.SphereElems[0];
                 SphereElem.Radius = DefaultSphereRadius;
-                SphereElem.SetRelativeTransform(FTransform::Identity);
-
+                SphereElem.SetRelativeTransform(RefSkeleton.RawRefBonePose[Idx]);
                 NewBodySetup->bOverrideMass = true;
                 NewBodySetup->Mass = DefaultBodyMass;
                 NewBodySetup->LinearDamping = 0.05f;
@@ -914,6 +906,7 @@ void USkeletalMeshComponent::CreatePhysicsBodies()
 
                 PhysicsAsset->BodySetup.Add(NewBodySetup);
             }
+
         }
         if (bPhysicsStateCreated && PhysicsAsset->BodySetup.Num() == 0)
         {

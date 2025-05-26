@@ -5,7 +5,6 @@
 
 class UPrimitiveComponent;
 class UBodySetup;
-class FPhysScene;
 
 struct FBodyInstance : FBodyInstanceCore
 {

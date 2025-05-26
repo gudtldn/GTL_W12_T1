@@ -1,6 +1,5 @@
 
 #include "BodyInstance.h"
-#include "PhysicsEngine/PhysScene.h"
 #include "PhysicsEngine/AggregateGeom.h"
 #include "PhysicsEngine/BodySetupCore.h"
 #include "PhysicsEngine/BodySetup.h"
