@@ -38,12 +38,12 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 
     if (bInWorldSpace)
     {
-        Location = Owner->Component->GetComponentToWorld().TransformPosition(Location);
+        Location = Owner->Component->GetComponentTransform().TransformPosition(Location);
     }
 
     if (bApplyEmitterLocation)
     {
-        Location += Owner->Component->GetComponentToWorld().GetTranslation();
+        Location += Owner->Component->GetComponentTransform().GetTranslation();
     }
 
     ParticleBase->Location = Location;
