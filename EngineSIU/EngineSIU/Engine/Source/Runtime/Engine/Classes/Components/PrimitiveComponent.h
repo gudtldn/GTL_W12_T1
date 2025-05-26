@@ -18,7 +18,9 @@ public:
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
-    
+
+    virtual void PhysicsTick();
+
     bool IntersectRayTriangle(
         const FVector& RayOrigin, const FVector& RayDirection,
         const FVector& v0, const FVector& v1, const FVector& v2, float& OutHitDistance
@@ -26,7 +28,10 @@ public:
 
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
-    
+
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
     FBoundingBox AABB;
 
     bool GetGenerateOverlapEvents() const { return bGenerateOverlapEvents; }
@@ -103,6 +108,21 @@ public:
         EditAnywhere | LuaReadOnly, ({ .Category = "Collision" }),
         FBodyInstance, BodyInstance, ;
     )
+
+    // 이 컴포넌트가 물리 시뮬레이션을 할지 여부
+    UPROPERTY(
+        EditAnywhere | LuaReadWrite, { .Category = "Physics" },
+        bool, bSimulatePhysics, ;
+    )
+
+    // 물리 상태 생성 및 파괴 가상 함수
+    virtual bool ShouldCreatePhysicsState() const;
+    virtual void CreatePhysicsState();
+    virtual void DestroyPhysicsState();
+    virtual void RecreatePhysicsState(); // 물리 상태 재생성
+
+    // 파생 클래스에서 구현
+    virtual UBodySetup* GetBodySetup() const { return nullptr; }
 
 protected:
     TArray<FOverlapInfo> OverlappingComponents;

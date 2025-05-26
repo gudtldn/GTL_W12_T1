@@ -155,6 +155,7 @@ UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
     NewComponent->AABB = AABB;
+    NewComponent->bSimulatePhysics = bSimulatePhysics;
 
     return NewComponent;
 }
@@ -181,6 +182,14 @@ void UPrimitiveComponent::InitializeComponent()
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+}
+
+void UPrimitiveComponent::PhysicsTick()
+{
+    if (BodyInstance.IsValidBodyInstance() && BodyInstance.IsSimulatingPhysics())
+    {
+        BodyInstance.SyncPhysXToComponent();
+    }
 }
 
 bool UPrimitiveComponent::IntersectRayTriangle(const FVector& RayOrigin, const FVector& RayDirection, const FVector& v0, const FVector& v1, const FVector& v2, float& OutHitDistance) const
@@ -257,6 +266,27 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     {
         AABB.MaxLocation.InitFromString(*AABBmaxStr);
     }
+}
+
+void UPrimitiveComponent::BeginPlay()
+{
+    USceneComponent::BeginPlay();
+
+    // TODO: OnRegister 만들면 옮기기
+    if (ShouldCreatePhysicsState())
+    {
+        CreatePhysicsState();
+    }
+
+    BodyInstance.SetSimulatePhysics(bSimulatePhysics);
+}
+
+void UPrimitiveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    // TODO: OnUnregister 만들면 옮기기
+    DestroyPhysicsState();
+
+    USceneComponent::EndPlay(EndPlayReason);
 }
 
 void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap, bool bDoNotifies)
@@ -456,6 +486,53 @@ void UPrimitiveComponent::GetOverlappingComponents(TSet<UPrimitiveComponent*>& O
 const TArray<FOverlapInfo>& UPrimitiveComponent::GetOverlapInfos() const
 {
     return OverlappingComponents;
+}
+
+bool UPrimitiveComponent::ShouldCreatePhysicsState() const
+{
+    // 월드에 속해있고, 유효한 BodySetup이 있으며 (GetBodySetup() 통해 확인),
+    // 아직 물리 상태가 생성되지 않았을 때 (BodyInstance.IsValidBodyInstance() 사용)
+    // 또한, 게임이 실행 중이거나 에디터에서 특정 조건 만족 시 등 추가 조건 가능
+    return GetWorld() != nullptr && GetBodySetup() != nullptr && !BodyInstance.IsValidBodyInstance();
+}
+
+void UPrimitiveComponent::CreatePhysicsState()
+{
+    if (BodyInstance.IsValidBodyInstance())
+    {
+        // 이미 물리 상태가 있다면, 로직 오류이거나 재생성 경로를 타야 함
+        // UE_LOG(LogTemp, Warning, TEXT("CreatePhysicsState called but physics state already exists for %s."), *GetName());
+        DestroyPhysicsState(); // 안전하게 기존 상태 제거
+    }
+
+    UBodySetup* CurrentBodySetup = GetBodySetup();
+    if (CurrentBodySetup && GetWorld()) // 월드가 유효한지도 확인 (Scene에 추가해야 하므로)
+    {
+        // 컴포넌트의 현재 월드 트랜스폼을 가져옴
+        const FTransform WorldTransform = GetComponentTransform();
+
+        // FBodyInstance 초기화
+        BodyInstance.InitBody(this, CurrentBodySetup, WorldTransform, bSimulatePhysics);
+    }
+}
+
+void UPrimitiveComponent::DestroyPhysicsState()
+{
+    if (BodyInstance.IsValidBodyInstance())
+    {
+        BodyInstance.TermBody();
+    }
+}
+
+void UPrimitiveComponent::RecreatePhysicsState()
+{
+    DestroyPhysicsState();
+    // ShouldCreatePhysicsState 조건이 다시 만족되도록 상태를 조정하거나,
+    // 직접 CreatePhysicsState를 호출하기 전에 필요한 사전 조건을 확인합니다.
+    if (ShouldCreatePhysicsState()) // 또는 다른 조건 (예: IsRegistered())
+    {
+        CreatePhysicsState();
+    }
 }
 
 void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPendingOverlaps, bool bDoNotifies, const TArray<const FOverlapInfo>* OverlapsAtEndLocation)

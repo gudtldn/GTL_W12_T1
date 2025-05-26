@@ -370,6 +370,17 @@ void USceneComponent::SetRelativeTransform(const FTransform& InTransform)
     UpdateOverlaps();
 }
 
+void USceneComponent::SetRelativeLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation)
+{
+    SetRelativeLocationAndRotation(NewLocation, NewRotation.Quaternion());
+}
+
+void USceneComponent::SetRelativeLocationAndRotation(const FVector& NewLocation, const FQuat& NewRotation)
+{
+    SetRelativeLocation(NewLocation);
+    SetRelativeRotation(NewRotation);
+}
+
 void USceneComponent::SetWorldTransform(const FTransform& InTransform)
 {
     // 월드 트랜스폼을 상대 트랜스폼으로 변환
@@ -393,6 +404,44 @@ void USceneComponent::SetWorldTransform(const FTransform& InTransform)
     
     // 오버랩 업데이트 (충돌 관련 컴포넌트인 경우)
     UpdateOverlaps();
+}
+
+void USceneComponent::SetWorldLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation)
+{
+    if (GetAttachParent() == nullptr)
+    {
+        // No parent, relative == world. Use FRotator version because it can check for rotation change without conversion issues.
+        SetRelativeLocationAndRotation(NewLocation, NewRotation);
+    }
+    else
+    {
+        SetWorldLocationAndRotation(NewLocation, NewRotation.Quaternion());
+    }
+}
+
+void USceneComponent::SetWorldLocationAndRotation(const FVector& NewLocation, const FQuat& NewRotation)
+{
+    // If attached to something, transform into local space
+    FVector NewFinalLocation = NewLocation;
+    FQuat NewFinalRotation = NewRotation;
+    if (GetAttachParent() != nullptr)
+    {
+        FTransform ParentToWorld = GetAttachParent()->GetComponentTransform();
+
+        // if (!IsUsingAbsoluteLocation())
+        // {
+        //     NewFinalLocation = ParentToWorld.InverseTransformPosition(NewLocation);
+        // }
+
+        if (!IsUsingAbsoluteRotation())
+        {
+            // Quat multiplication works reverse way, make sure you do Parent(-1) * World = Local, not World*Parent(-) = Local (the way matrix does)
+            const FQuat NewRelQuat = ParentToWorld.GetRotation().Inverse() * NewRotation;
+            NewFinalRotation = NewRelQuat;
+        }
+    }
+
+    SetRelativeLocationAndRotation(NewFinalLocation, NewFinalRotation);
 }
 
 void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps, bool bDoNotifies, const TArray<const FOverlapInfo>* OverlapsAtEndLocation)
