@@ -13,3 +13,14 @@ namespace EEndPlayReason
         Quit,
     };
 }
+
+enum class ECollisionChannel : uint8
+{
+    WorldStatic,
+    WorldDynamic,
+    Pawn,
+    Visibility,
+    Camera,
+    PhysicsBody,
+    Vehicle,
+};

@@ -6,6 +6,7 @@
 #include "Template/SubclassOf.h"
 #include "Animation/AnimNodeBase.h"
 
+struct FConstraintInstance;
 class UAnimSequence;
 class USkeletalMesh;
 struct FAnimNotifyEvent;
@@ -121,7 +122,14 @@ protected:
     bool NeedToSpawnAnimScriptInstance() const;
 
     EAnimationMode AnimationMode;
-    
+
+public:
+    /** Array of FBodyInstance objects, storing per-instance state about about each body. */
+    TArray<FBodyInstance*> Bodies;
+
+    /** Array of FConstraintInstance structs, storing per-instance state about each constraint. */
+    TArray<FConstraintInstance*> Constraints;
+
 private:
     FPoseContext BonePoseContext;
     
