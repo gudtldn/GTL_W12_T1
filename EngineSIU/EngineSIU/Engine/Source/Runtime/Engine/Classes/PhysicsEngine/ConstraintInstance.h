@@ -16,6 +16,7 @@ public:
     FConstraintInstanceBase& operator=(FConstraintInstanceBase&&) = default;
 };
 
+
 struct FConstraintInstance : public FConstraintInstanceBase
 {
     DECLARE_STRUCT(FConstraintInstance, FConstraintInstanceBase)
@@ -34,4 +35,10 @@ public:
         VisibleAnywhere, { .Category = "Constraint" },
         FName, JointName, ;
     )
+
+public:
+    // TODO: Implements This
+    void TermConstraint()
+    {
+    }
 };
