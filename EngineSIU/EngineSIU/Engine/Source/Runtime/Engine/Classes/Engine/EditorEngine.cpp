@@ -19,6 +19,8 @@
 #include "UnrealEd/UnrealEd.h"
 #include "World/ParticleViewerWorld.h"
 
+#include "PhysicsEngine/PhysicsEngine.h"
+
 extern FEngineLoop GEngineLoop;
 
 namespace PrivateEditorSelection
@@ -181,6 +183,11 @@ void UEditorEngine::StartPIE()
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
+    
+    // Begin Test
+    // 여기가 아니라 EngineLoop::Init에서 해줘야 하는건가?
+    FPhysicsEngine::InitPhysX();
+    // End Test
 }
 
 void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset)

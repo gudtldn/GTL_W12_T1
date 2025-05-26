@@ -19,4 +19,14 @@ public:
 
     uint8 bCreatedPhysicsMeshes : 1;
 
+    UPROPERTY
+    (float, Mass)
+    UPROPERTY
+    (bool, bOverrideMass)
+    UPROPERTY
+    (float, Density)
+    UPROPERTY
+    (float, LinearDamping)
+    UPROPERTY
+    (float, AngularDamping)
 };

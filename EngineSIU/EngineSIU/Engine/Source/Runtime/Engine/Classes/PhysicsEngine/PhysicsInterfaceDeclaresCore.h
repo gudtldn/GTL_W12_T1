@@ -19,6 +19,7 @@ extern physx::PxMaterial* gMaterial;
 extern physx::PxDefaultCpuDispatcher* gDispatcher;
 // End Test
 
+
 struct FGameObject 
 {
     physx::PxRigidDynamic* rigidBody = nullptr;
@@ -44,9 +45,10 @@ public:
 
     bool IsValid() const { return Handle != nullptr; }
 
-    // void AddActor(physx::PxActor& Actor);
-    // void RemoveActor(physx::PxActor& Actor);
-    // uint32 GetNumActors() const;
+public:
+    void AddActor(physx::PxActor& Actor) const { if (Handle) Handle->addActor(Actor); }
+    void RemoveActor(physx::PxActor& Actor) const { if (Handle)Handle->removeActor(Actor); }
+    uint32 GetNumActors() const { if (Handle) return Handle->getNbActors(); }
 
     explicit operator bool() const { return IsValid(); }
 
@@ -54,6 +56,7 @@ public:
     bool operator!=(const FPhysicsAggregateHandle& Other) const { return Handle != Other.Handle; }
 
     void Reset() { Handle = nullptr; }
+
 private:
     physx::PxAggregate* Handle;
 };

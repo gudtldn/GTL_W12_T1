@@ -186,7 +186,13 @@ public:
 
     void ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints);
 
-
     FTransform GetBoneTransform(int32 BoneIndex, bool bInComponentSpace) const;
+
+    virtual bool ShouldCreatePhysicsState() const override;
+
+    UPROPERTY
+    (bool, bSimulatePhysics, = false)
+
+    FTransform ConvertPxTransformToUnreal(const physx::PxTransform& PxTransform);
 
 };

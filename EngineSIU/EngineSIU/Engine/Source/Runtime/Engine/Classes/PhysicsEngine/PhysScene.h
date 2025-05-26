@@ -10,7 +10,6 @@ class UPrimitiveComponent;
 class FPhysScene
 {
 private:
-    physx::PxScene* PxSceneInstance;
 
     TArray<UPrimitiveComponent*> DeferredCreationQueue;
     TArray<UPrimitiveComponent*> DeferredDestructionQueue;
@@ -19,22 +18,17 @@ public:
     FPhysScene() = default;
     FPhysScene(physx::PxScene* InPxScene);
 
-    physx::PxScene* GetPxScene() const { return PxSceneInstance; }
+    physx::PxScene* GetPxScene() const { return gScene; }
 
-    bool IsValid() const { return PxSceneInstance != nullptr; }
+    bool IsValid() const { return gScene != nullptr; }
 
-    // 래핑만 함
-    // 전역으로 따로 빼기 vs FPhysScene에 그대로 두기
-    void Simulate(float DeltaTime);
-    bool FetchResults(bool Block = true);
+    static void Simulate(float DeltaTime);
+    static bool FetchResults(bool Block = true);
 
     FPhysicsAggregateHandle CreateAggregate(uint32 MaxActors, bool EnableSelfCollision = false);
     void ReleaseAggregate(FPhysicsAggregateHandle AggregateHandle);
     
-    // 아마 게임잼을 할 것 같은데 하게 되면 쓸 생각
-    // bool Raycast(const FVector& Origin, const FVector& Direction, float MaxDistance, FHitResult& OutHit);
-
     void DeferPhysicsStateCreation(UPrimitiveComponent* Primitive);
     void RemoveDeferredPhysicsStateCreation(UPrimitiveComponent* Primitive);
-    void ProcessDeferredPhysicsOperations(); // 매 틱 호출
+    static void ProcessDeferredPhysicsOperations();
 };

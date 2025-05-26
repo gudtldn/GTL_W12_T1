@@ -16,6 +16,7 @@
 #include "Renderer/TileLightCullingPass.h"
 
 #include "SoundManager.h"
+#include "PhysicsEngine/PhysicsEngine.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
@@ -168,6 +169,8 @@ void FEngineLoop::Tick()
 
         const float DeltaTime = static_cast<float>(ElapsedTime / 1000.f);
 
+        FPhysicsEngine::Tick(DeltaTime);
+
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
         Render();
@@ -209,6 +212,7 @@ void FEngineLoop::GetClientSize(uint32& OutWidth, uint32& OutHeight) const
 
 void FEngineLoop::Exit()
 {
+    FPhysicsEngine::ShutdownPhysX();
     LevelEditor->Release();
     UIManager->Shutdown();
     ResourceManager.Release(&Renderer);

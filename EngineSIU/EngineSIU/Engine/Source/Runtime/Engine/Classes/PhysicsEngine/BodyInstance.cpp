@@ -91,20 +91,40 @@ bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwner
     if (bSimulatePhysics && RigidActor->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
     {
         physx::PxRigidDynamic* DynActor = static_cast<physx::PxRigidDynamic*>(RigidActor);
+        if (BodySetup->bOverrideMass && BodySetup->Mass > 0.0f)
+        {
+            DynActor->setMass(BodySetup->Mass);
+            physx::PxTransform MassFrame(physx::PxIdentity);
+            physx::PxVec3 InertiaTensorDiagonal(1.f, 1.f, 1.f);
+            if (RigidActor->getNbShapes() > 0)
+            {
+                PxRigidBodyExt::updateMassAndInertia(*DynActor, BodySetup->Density > 0.f ? BodySetup->Density : 1.0f);
+            }
+            else
+            {
+                DynActor->setMassSpaceInertiaTensor(InertiaTensorDiagonal);
+            }
 
-        // 질량 및 관성 설정
-        // float Mass = GetMass();
-        // DynActor->setMass(Mass);
-        // physx::PxVec3 InertiaTensor = GetInertiaTensor(); // 관성 텐서 계산 또는 가져오기
-        // DynActor->setMassSpaceInertiaTensor(InertiaTensor);
-        // 또는 PxRigidBodyExt::updateMassAndInertia(*DynActor, Density) 같은 유틸리티 사용
+        }
+        else if (BodySetup->Density > 0.0f && RigidActor->getNbShapes() > 0)
+        {
+            if (!PxRigidBodyExt::updateMassAndInertia(*DynActor, BodySetup->Density))
+            {
+                UE_LOG(ELogLevel::Warning, TEXT("FBodyInstance::InitBody: Failed to update mass and inertia from density. Using default values."));
+                DynActor->setMass(1.0f);
+                DynActor->setMassSpaceInertiaTensor(physx::PxVec3(1.0f, 1.0f, 1.0f));
+            }
+        }
+        else
+        {
+            UE_LOG(ELogLevel::Warning, TEXT("FBodyInstance::InitBody: Mass or Density not specified. Using default mass and inertia."));
+            DynActor->setMass(1.0f);
+            DynActor->setMassSpaceInertiaTensor(physx::PxVec3(1.0f, 1.0f, 1.0f));
+        }
 
-        // 댐핑 설정
-        // DynActor->setLinearDamping(GetLinearDamping());
-        // DynActor->setAngularDamping(GetAngularDamping());
+        DynActor->setLinearDamping(BodySetup->LinearDamping);
+        DynActor->setAngularDamping(BodySetup->AngularDamping);
 
-        // 기타 플래그 (락 플래그 등)
-        // DynActor->setRigidDynamicLockFlags(...);
     }
 
 

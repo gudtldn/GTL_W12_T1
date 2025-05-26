@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/ObjectMacros.h"
 
 
@@ -28,6 +28,7 @@ public:
     FConstraintInstance& operator=(const FConstraintInstance&) = default;
     FConstraintInstance(FConstraintInstance&&) = default;
     FConstraintInstance& operator=(FConstraintInstance&&) = default;
+
 
 public:
     UPROPERTY(

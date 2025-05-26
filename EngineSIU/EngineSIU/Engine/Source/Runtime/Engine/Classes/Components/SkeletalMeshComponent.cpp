@@ -40,6 +40,11 @@ void USkeletalMeshComponent::InitializeComponent()
     Super::InitializeComponent();
 
     InitAnim();
+
+    if (ShouldCreatePhysicsState())
+    {
+        CreatePhysicsState();
+    }
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -511,7 +516,6 @@ void USkeletalMeshComponent::CreatePhysicsState(bool bAllowDeferral)
         }
 
         InstantiatePhysicsAssetBodies(*PhysicsAsset, Bodies, nullptr, this, INDEX_NONE, Aggregate);
-
         InstantiatePhysicsAssetConstraints(*PhysicsAsset, Bodies, Constraints, GetWorld()->GetPhysicsScene());
 
         if (Bodies.Num() > 0)
@@ -614,16 +618,6 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
         FTransform BoneTransform = GetBoneTransform(BoneIndex, true);// Component Space
         NewBodyInstance->SetRelativeTransform(BoneTransform * GetComponentToWorld()); // 월드 트랜스폼으로
 
-        // 5. FBodyInstance를 통해 실제 물리 객체(PhysX Actor 및 Shape) 생성
-        //    FBodyInstance::InitBody() 함수 호출 (이 함수 내부에서 PhysX 객체 생성 및 씬 추가)
-        //    InitBody는 BodySetup의 AggGeom을 사용하여 PxShape들을 만들고,
-        //    BodySetup의 물리 프로퍼티에 따라 PxRigidDynamic (또는 Static)을 만듭니다.
-        //    또한, 생성된 PxActor를 ResolvedPhysScene에 추가합니다.
-        //    Aggregate 핸들도 전달하여 PxActor를 Aggregate에 추가하도록 할 수 있습니다.
-        //
-        //    InitBody의 시그니처는 대략 다음과 같을 수 있습니다:
-        //    bool FBodyInstance::InitBody(AActor* OwningActor, UPrimitiveComponent* OwningComp, FPhysScene* Scene, const FTransform& InitialTransform, const FPhysicsAggregateHandle& Aggregate = FPhysicsAggregateHandle())
-
         // InitBody를 호출하기 전에 필요한 정보 설정 (예: 질량 스케일링 등)
         // NewBodyInstance->UpdateMassProperties(); // BodySetup의 질량 관련 설정 적용
 
@@ -638,24 +632,15 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
             delete NewBodyInstance;
         }
 
-        // 6. (옵션) 생성된 바디를 전역 Aggregate에 추가
-        //    FBodyInstance::InitBody 내부에서 UseAggregate가 유효하면 자동으로 추가되도록 설계하거나,
-        //    여기서 명시적으로 Aggregate에 추가하는 API를 호출할 수 있습니다.
-        //    예: if (UseAggregate.IsValid() && NewBodyInstance->RigidActorSync) { UseAggregate.AddActor(NewBodyInstance->RigidActorSync); }
-        //    (FPhysicsAggregateHandle에 AddActor 같은 함수가 있고, FBodyInstance가 PxActor 포인터를 노출한다고 가정)
+        if (UseAggregate.IsValid() && NewBodyInstance->RigidActor)
+        {
+            UseAggregate.AddActor(*NewBodyInstance->RigidActor);
+        }
     }
-
-    // 7. (후처리) 생성된 바디들 간의 관계 설정 등 (필요시)
-    //    (컨스트레인트 생성은 별도의 함수에서 처리하는 것이 일반적입니다: InstantiatePhysicsAssetConstraints)
-
-    // 참고: OutBodies에 추가된 FBodyInstance* 들은 호출한 쪽에서 소유권을 가지고 관리해야 합니다.
-    // (예: USkeletalMeshComponent의 멤버 TArray<FBodyInstance*> Bodies; 에 저장하고,
-    // DestroyPhysicsState에서 각 FBodyInstance의 TermBody() 호출 후 delete)
 }
 
 void USkeletalMeshComponent::InstantiatePhysicsAssetConstraints(const UPhysicsAsset& PhysAsset, const TArray<FBodyInstance*>& InBodies, TArray<FConstraintInstance*>& OutConstraints, FPhysScene* PhysScene)
 {
-
 }
 
 void USkeletalMeshComponent::ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints)
@@ -868,4 +853,20 @@ FTransform USkeletalMeshComponent::GetBoneTransform(int32 BoneIndex, bool bInCom
         }
     }
     return FTransform::Identity; // 실패 시 단위행렬 반환
+}
+
+bool USkeletalMeshComponent::ShouldCreatePhysicsState() const
+{
+    if (bPhysicsStateCreated || !PhysicsAsset || !GetWorld())
+    {
+        return false;
+    }
+    return true;
+}
+
+FTransform USkeletalMeshComponent::ConvertPxTransformToUnreal(const physx::PxTransform& PxTransform)
+{
+    FVector Position = FVector(PxTransform.p.x, PxTransform.p.y, PxTransform.p.z);
+    FQuat Rotation = FQuat(PxTransform.q.x, PxTransform.q.y, PxTransform.q.z, PxTransform.q.w);
+    return FTransform(Rotation, Position);
 }

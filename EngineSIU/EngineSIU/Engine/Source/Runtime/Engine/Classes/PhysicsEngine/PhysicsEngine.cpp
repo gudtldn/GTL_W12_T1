@@ -1,4 +1,5 @@
 #include "PhysicsEngine.h"
+#include "PhysicsEngine/PhysScene.h"
 
 physx::PxDefaultAllocator       gAllocator;
 physx::PxDefaultErrorCallback   gErrorCallback;
@@ -22,4 +23,37 @@ void FPhysicsEngine::InitPhysX()
     sceneDesc.cpuDispatcher = gDispatcher;
     sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
     gScene = gPhysics->createScene(sceneDesc);
+}
+
+void FPhysicsEngine::ShutdownPhysX()
+{
+    if (gScene)
+    {
+        gScene->release();
+        gScene = nullptr;
+    }
+    if (gDispatcher)
+    {
+        gDispatcher->release();
+        gDispatcher = nullptr;
+    }
+    if (gMaterial)
+    {
+        gMaterial->release();
+        gMaterial = nullptr;
+    }
+    if (gPhysics)
+    {
+        gPhysics->release();
+        gPhysics = nullptr;
+    }
+    if (gFoundation)
+    {
+        gFoundation->release();
+        gFoundation = nullptr;
+    }
+}
+void FPhysicsEngine::Tick(float DeltaTime)
+{
+
 }

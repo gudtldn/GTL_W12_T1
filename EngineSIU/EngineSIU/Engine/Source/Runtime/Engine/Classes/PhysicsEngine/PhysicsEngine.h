@@ -1,11 +1,17 @@
 #pragma once
 #include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 #include "UObject/ObjectMacros.h"
+
+class PhysScene;
+
 class FPhysicsEngine
 {
 public:
-    FPhysicsEngine() = default;
+    FPhysicsEngine();
 
-    void InitPhysX();
+    static void InitPhysX();
+    static void ShutdownPhysX();
+
+    static void Tick(float DeltaTime);
 };
 
