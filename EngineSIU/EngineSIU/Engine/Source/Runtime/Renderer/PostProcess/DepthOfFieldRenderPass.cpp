@@ -5,6 +5,19 @@
 #include "D3D11RHI/DXDShaderManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 
+FDepthOfFieldRenderPass::FDepthOfFieldRenderPass()
+{
+	// 안전한 초기값 설정
+	DOFConstant.FocusDistance = 0.5f;      // 화면 중간 깊이
+	DOFConstant.FocusRange = 0.1f;         // 적당한 초점 범위
+	DOFConstant.BlurStrength = 1.0f;       // 기본 블러 강도
+	DOFConstant.MaxBlurRadius = 3.0f;      // 최대 블러 반경 제한
+	DOFConstant.FocalLength = 50.0f;       // 표준 렌즈
+	DOFConstant.Aperture = 2.8f;           // F2.8
+	DOFConstant.NearPlane = 0.1f;          // 기본 Near
+	DOFConstant.FarPlane = 1000.0f;        // 기본 Far
+}
+
 void FDepthOfFieldRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);

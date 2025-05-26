@@ -64,37 +64,60 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
     return Output;
 }
 
+float LinearizeDepth(float z)
+{
+    float ndc = z * 2.0 - 1.0; // Depth buffer [0,1] → NDC [-1,1]
+    return (2.0 * NearPlane * FarPlane) / (FarPlane + NearPlane - ndc * (FarPlane - NearPlane));
+}
+
+float GetCoC(float d) // d: linearized depth
+{
+    float f = FocalLength * 0.001f; // mm → m로 단위 변환
+    float a = Aperture; // f-stop
+    float s = FocusDistance; // 초점 거리 (world units)
+    float coc = abs(f * f * (d - s) / (d * (s - f))) * (a / f);
+
+    return coc;
+}
+
+
 float4 mainPS(PS_Input Input) : SV_TARGET
 {
     float2 uv = Input.UV;
 
-    // 깊이 읽기
     float depth = DepthTexture.Sample(SceneSampler, uv).r;
-
-    // 원본 색상
+    float linearDepth = LinearizeDepth(depth);
+    
     float4 color = SceneTexture.Sample(SceneSampler, uv);
 
-    // 초점 거리에서의 오차 계산
-    float focusError = abs(depth - FocusDistance);
+    float coc = GetCoC(linearDepth);
+    
+   
+    
+    float blurRadius = saturate(coc / MaxBlurRadius) * MaxBlurRadius;
 
-    // 초점 범위를 넘어가면 블러 처리
-    if (focusError > FocusRange)
+    if (blurRadius > 0.01)
     {
         float4 blurColor = float4(0, 0, 0, 0);
-        float2 texelSize = InvTextureSize;
+        float totalWeight = 0.0;
 
-        // 간단한 박스 블러
-        for (int x = -2; x <= 2; x++)
+        int kernel = 2;
+
+        for (int x = -kernel; x <= kernel; x++)
         {
-            for (int y = -2; y <= 2; y++)
+            for (int y = -kernel; y <= kernel; y++)
             {
-                float2 offset = float2(x, y) * texelSize * BlurStrength * focusError;
-                blurColor += SceneTexture.Sample(SceneSampler, uv + offset);
+                float2 offset = float2(x, y) * InvTextureSize * blurRadius * BlurStrength;
+                float weight = 1.0;
+                blurColor += SceneTexture.Sample(SceneSampler, uv + offset) * weight;
+                totalWeight += weight;
             }
         }
 
-        color = blurColor / 25.0; // 5x5 커널
+        if (totalWeight > 0)
+            color = blurColor / totalWeight;
     }
 
     return color;
 }
+

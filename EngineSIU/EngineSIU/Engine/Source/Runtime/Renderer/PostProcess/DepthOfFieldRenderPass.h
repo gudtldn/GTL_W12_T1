@@ -8,7 +8,7 @@ struct ID3D11SamplerState;
 class FDepthOfFieldRenderPass : public FRenderPassBase
 {
 public:
-    FDepthOfFieldRenderPass() = default;
+    FDepthOfFieldRenderPass();
     virtual ~FDepthOfFieldRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;

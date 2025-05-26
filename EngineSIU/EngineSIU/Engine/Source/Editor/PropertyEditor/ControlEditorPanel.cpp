@@ -333,7 +333,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         ImGui::Separator();
 
         ImGui::SetNextItemWidth(150.f);
-        if (ImGui::DragFloat("##FocusDistance", &DOFConstant.FocusDistance, 0.01f, 0.0f, 1.0f, "Focus Dist: %.2f"))
+        if (ImGui::DragFloat("##FocusDistance", &DOFConstant.FocusDistance, 0.01f, 0.0f, 100.0f, "Focus Dist: %.2f"))
         {
 
         }
@@ -363,17 +363,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         {
         }
 
-        ImGui::Separator();
 
-        ImGui::SetNextItemWidth(150.f);
-        if (ImGui::DragFloat("##NearPlane", &DOFConstant.NearPlane, 0.01f, 0.01f, 100.0f, "Near Plane: %.2f"))
-        {
-        }
-
-        ImGui::SetNextItemWidth(150.f);
-        if (ImGui::DragFloat("##FarPlane", &DOFConstant.FarPlane, 1.0f, 10.0f, 10000.0f, "Far Plane: %.0f"))
-        {
-        }
 
         ImGui::EndPopup();
     }
