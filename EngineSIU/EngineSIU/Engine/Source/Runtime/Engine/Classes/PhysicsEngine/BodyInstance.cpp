@@ -7,7 +7,7 @@
 #include "Components/PrimitiveComponent.h"
 
 
-bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwnerComponent, UBodySetup* InBodySetup, FPhysScene* InScene, const FTransform& InInitialTransform, const FPhysicsAggregateHandle& InAggregate)
+bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwnerComponent, UBodySetup* InBodySetup, physx::PxScene* InScene, const FTransform& InInitialTransform, const FPhysicsAggregateHandle& InAggregate)
 {
     if (RigidActor)
     {
@@ -15,7 +15,7 @@ bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwner
         TermBody();
     }
 
-    if (!InBodySetup || !InScene || !InScene->IsValid() || !InOwnerComponent)
+    if (!InBodySetup || !InScene || !InOwnerComponent)
     {
         UE_LOG(ELogLevel::Error, TEXT("FBodyInstance::InitBody: Invalid parameters (BodySetup, Scene, or OwningComponent)."));
         return false;
@@ -137,7 +137,7 @@ bool FBodyInstance::InitBody(AActor* InOwningActor, UPrimitiveComponent* InOwner
         }
     }
 
-    InScene->GetPxScene()->addActor(*RigidActor);
+    InScene->addActor(*RigidActor);
     bBodyInitialized = true;
 
     return true;

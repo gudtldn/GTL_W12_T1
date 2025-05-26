@@ -92,9 +92,10 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     GetClientSize(ClientWidth, ClientHeight);
     LevelEditor->Initialize(ClientWidth, ClientHeight);
 
+    FPhysicsEngine::InitPhysX();
+
     GEngine = FObjectFactory::ConstructObject<UEditorEngine>(nullptr);
     GEngine->Init();
-
 
     FSoundManager::GetInstance().Initialize();
     FSoundManager::GetInstance().LoadSound("fishdream", "Contents/Sounds/fishdream.mp3");

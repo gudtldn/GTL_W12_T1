@@ -17,6 +17,8 @@
 #include "Classes/Components/TextComponent.h"
 #include "Contents/Actors/Fish.h"
 
+#include "PhysicsEngine/PhysicsEngine.h"
+
 class UEditorEngine;
 
 UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)

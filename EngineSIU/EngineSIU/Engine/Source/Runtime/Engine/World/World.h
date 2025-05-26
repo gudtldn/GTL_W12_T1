@@ -106,12 +106,6 @@ private:
     UTextComponent* MainTextComponent = nullptr;
 
     FCollisionManager* CollisionManager = nullptr;
-
-
-public:
-    FPhysScene* GetPhysicsScene() const { return PhysScene; }
-private:
-    FPhysScene* PhysScene;
 };
 
 

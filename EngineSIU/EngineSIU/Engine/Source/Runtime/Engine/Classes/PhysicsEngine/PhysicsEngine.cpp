@@ -1,11 +1,11 @@
 #include "PhysicsEngine.h"
-#include "PhysicsEngine/PhysScene.h"
 
 physx::PxFoundation* gFoundation = nullptr;
 physx::PxPhysics* gPhysics = nullptr;
 physx::PxScene* gScene = nullptr;
 physx::PxMaterial* gMaterial = nullptr;
 physx::PxDefaultCpuDispatcher* gDispatcher = nullptr;
+
 
 TArray<FGameObject> gObjects;
 
@@ -45,12 +45,11 @@ void FPhysicsEngine::InitPhysX()
 
     gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
     physx::PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
-    sceneDesc.gravity = physx::PxVec3(0, -9.81f, 0);
+    sceneDesc.gravity = physx::PxVec3(0, 0, -9.81f);
     gDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher = gDispatcher;
     sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
     gScene = gPhysics->createScene(sceneDesc);
-    FPhysScene* PhysScene = new FPhysScene(gScene);
 
 #ifdef _DEBUG
     // PVD Scene 설정
@@ -129,7 +128,7 @@ void FPhysicsEngine::Tick(float DeltaTime)
 
     while (AccumulatedTime >= FixedDeltaTime)
     {
-        FPhysScene::Simulate(FixedDeltaTime);
+        FPhysicsEngine::Simulate(FixedDeltaTime);
         AccumulatedTime -= FixedDeltaTime;
     }
 }
@@ -161,4 +160,69 @@ void FPhysicsEngine::EndSimulatePVD()
     // }
     bPIEMode = false;
 #endif
+}
+
+
+void FPhysicsEngine::Simulate(float DeltaTime)
+{
+    gScene->simulate(DeltaTime);
+    FetchResults(true);
+    ProcessDeferredPhysicsOperations();
+}
+
+bool FPhysicsEngine::FetchResults(bool Block)
+{
+    return gScene->fetchResults(Block);
+}
+
+FPhysicsAggregateHandle FPhysicsEngine::CreateAggregate(uint32 MaxActors, bool EnableSelfCollision)
+{
+    physx::PxPhysics* PxPhysicsSDK = gPhysics;
+    if (gScene && PxPhysicsSDK)
+    {
+        physx::PxAggregate* NewPxAgg = PxPhysicsSDK->createAggregate(MaxActors, EnableSelfCollision);
+        if (NewPxAgg)
+        {
+            gScene->addAggregate(*NewPxAgg);
+            return FPhysicsAggregateHandle(NewPxAgg);
+        }
+    }
+    return FPhysicsAggregateHandle();
+}
+
+void FPhysicsEngine::ReleaseAggregate(FPhysicsAggregateHandle AggregateHandle)
+{
+    if (gScene && AggregateHandle.IsValid())
+    {
+        physx::PxAggregate* PxAgg = AggregateHandle.GetUnderlyingAggregate();
+        if (PxAgg)
+        {
+            gScene->removeAggregate(*PxAgg);
+            PxAgg->release();
+        }
+    }
+}
+
+void FPhysicsEngine::DeferPhysicsStateCreation(UPrimitiveComponent* Primitive)
+{
+    if (Primitive && !DeferredCreationQueue.Contains(Primitive))
+    {
+        DeferredCreationQueue.Add(Primitive);
+    }
+}
+
+void FPhysicsEngine::RemoveDeferredPhysicsStateCreation(UPrimitiveComponent* Primitive)
+{
+    if (Primitive)
+    {
+        DeferredCreationQueue.Remove(Primitive);
+    }
+}
+
+void FPhysicsEngine::ProcessDeferredPhysicsOperations()
+{
+    for (auto& obj : gObjects)
+    {
+        obj.UpdateFromPhysics();
+    }
 }

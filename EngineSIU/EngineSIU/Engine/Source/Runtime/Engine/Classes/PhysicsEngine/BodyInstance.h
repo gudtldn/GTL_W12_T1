@@ -24,7 +24,7 @@ public:
         AActor* InOwningActor,
         UPrimitiveComponent* InOwningComponent,
         UBodySetup* InBodySetup,
-        FPhysScene* InScene,
+        physx::PxScene* InScene,
         const FTransform& InInitialTransform,
         const FPhysicsAggregateHandle& InAggregate = FPhysicsAggregateHandle()
     );
@@ -34,7 +34,6 @@ public:
 
 public:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
-    TWeakObjectPtr<FPhysScene> PhysicsScene;
 
     physx::PxRigidActor* RigidActor;
 

@@ -306,7 +306,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsEngine.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysScene.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ParticleHelper.cpp" />
@@ -601,7 +600,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsInterfaceDeclaresCore.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysScene.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphylElem.h" />

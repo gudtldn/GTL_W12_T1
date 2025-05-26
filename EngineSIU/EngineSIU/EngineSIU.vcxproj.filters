@@ -1687,7 +1687,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstanceCore.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysScene.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
@@ -1812,7 +1811,6 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessCompositingPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsEngine.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysScene.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h">
       <Filter>Engine</Filter>
     </ClInclude>

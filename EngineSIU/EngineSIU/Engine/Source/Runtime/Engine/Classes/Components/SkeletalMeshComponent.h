@@ -32,6 +32,7 @@ public:
     virtual ~USkeletalMeshComponent() override = default;
 
     virtual void InitializeComponent() override;
+    virtual void BeginPlay() override;
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
@@ -171,7 +172,7 @@ public:
     void InstantiatePhysicsAssetBodies(
         const UPhysicsAsset& PhysAsset,
         TArray<FBodyInstance*>& OutBodies,
-        FPhysScene* PhysScene = nullptr,
+        physx::PxScene* PhysScene = nullptr,
         USkeletalMeshComponent* OwningComponent = nullptr,
         int32 UseRootBodyIndex = INDEX_NONE,
         const FPhysicsAggregateHandle& UseAggregate = FPhysicsAggregateHandle()
@@ -181,7 +182,7 @@ public:
         const UPhysicsAsset& PhysAsset,
         const TArray<FBodyInstance*>& InBodies,
         TArray<FConstraintInstance*>& OutConstraints,
-        FPhysScene* PhysScene
+        physx::PxScene* PhysScene
     );
 
     void ReleasePhysicsAssetConstraints(TArray<FConstraintInstance*>& InConstraints);
@@ -194,5 +195,7 @@ public:
     (bool, bSimulatePhysics, = false)
 
     FTransform ConvertPxTransformToUnreal(const physx::PxTransform& PxTransform);
+
+    void CreatePhysicsBodies();
 
 };

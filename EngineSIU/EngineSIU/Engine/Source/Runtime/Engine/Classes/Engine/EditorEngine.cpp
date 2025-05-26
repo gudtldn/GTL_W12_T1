@@ -182,7 +182,6 @@ void UEditorEngine::StartPIE()
 
     // Begin Test
     // 여기가 아니라 EngineLoop::Init에서 해줘야 하는건가?
-    FPhysicsEngine::InitPhysX();
     FPhysicsEngine::StartSimulatePVD();
     // End Test
 

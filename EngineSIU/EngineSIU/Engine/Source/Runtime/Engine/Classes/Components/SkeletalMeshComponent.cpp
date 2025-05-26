@@ -19,8 +19,8 @@
 #include "PhysicsEngine/BodyInstance.h"
 #include "PhysicsEngine/PhysicsInterfaceDeclaresCore.h"
 #include "PhysicsEngine/PhysicsEngine.h"
-#include "PhysicsEngine/PhysScene.h"
 #include "World/World.h"
+
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -40,11 +40,16 @@ void USkeletalMeshComponent::InitializeComponent()
     Super::InitializeComponent();
 
     InitAnim();
+}
 
-    if (ShouldCreatePhysicsState())
-    {
-        CreatePhysicsState();
-    }
+void USkeletalMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+
+    if (!ShouldCreatePhysicsState()) return;
+
+    CreatePhysicsBodies();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -504,19 +509,27 @@ void USkeletalMeshComponent::CreatePhysicsState(bool bAllowDeferral)
             //ReleasePhysicsAssetBodies();
         }
 
-        if (!Aggregate.IsValid())
-        {
-            if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
-            {
-                 int32 NumBodiesInAsset = PhysicsAsset->BodySetup.Num();
-                 if (NumBodiesInAsset == 0) NumBodiesInAsset = 1;
+        //if (!Aggregate.IsValid())
+        //{
+        //    if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
+        //    {
+        //         int32 NumBodiesInAsset = PhysicsAsset->BodySetup.Num();
+        //         if (NumBodiesInAsset == 0) NumBodiesInAsset = 1;
 
-                 Aggregate = PhysScene->CreateAggregate(NumBodiesInAsset, false);
-            }
+        //         Aggregate = PhysScene->CreateAggregate(NumBodiesInAsset, false);
+        //    }
+        //}
+
+        if (gScene)
+        {
+            int32 NumBodiesInAsset = PhysicsAsset->BodySetup.Num();
+            if (NumBodiesInAsset == 0) NumBodiesInAsset = 1;
+
+            Aggregate = FPhysicsEngine::CreateAggregate(NumBodiesInAsset, false);
         }
 
-        InstantiatePhysicsAssetBodies(*PhysicsAsset, Bodies, nullptr, this, INDEX_NONE, Aggregate);
-        InstantiatePhysicsAssetConstraints(*PhysicsAsset, Bodies, Constraints, GetWorld()->GetPhysicsScene());
+        InstantiatePhysicsAssetBodies(*PhysicsAsset, Bodies, gScene, this, INDEX_NONE, Aggregate);
+        InstantiatePhysicsAssetConstraints(*PhysicsAsset, Bodies, Constraints, gScene);
 
         if (Bodies.Num() > 0)
         {
@@ -546,10 +559,8 @@ void USkeletalMeshComponent::DestroyPhysicsState()
 
         if (Aggregate.IsValid())
         {
-            if (FPhysScene* PhysScene = GetWorld()->GetPhysicsScene())
-            {
-                PhysScene->ReleaseAggregate(Aggregate);
-            }
+            FPhysicsEngine::ReleaseAggregate(Aggregate);
+
             Aggregate.Reset();
         }
     }
@@ -558,7 +569,7 @@ void USkeletalMeshComponent::DestroyPhysicsState()
 
 }
 
-void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& PhysAsset, TArray<FBodyInstance*>& OutBodies, FPhysScene* PhysScene, USkeletalMeshComponent* OwningComponent, int32 UseRootBodyIndex, const FPhysicsAggregateHandle& UseAggregate) const
+void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& PhysAsset, TArray<FBodyInstance*>& OutBodies, physx::PxScene* PhysScene, USkeletalMeshComponent* OwningComponent, int32 UseRootBodyIndex, const FPhysicsAggregateHandle& UseAggregate) const
 {
     if (!GetSkeletalMeshAsset() || !GetSkeletalMeshAsset()->GetSkeleton())
     {
@@ -567,23 +578,13 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
 
     USkeletalMeshComponent* ResolvedOwningComponent = OwningComponent ? OwningComponent : const_cast<USkeletalMeshComponent*>(this);
 
-    FPhysScene* ResolvedPhysScene = PhysScene;
-    if (!ResolvedPhysScene)
-    {
-        if (UWorld* World = GetWorld())
-        {
-            ResolvedPhysScene = World->GetPhysicsScene();
-        }
-    }
-
-    if (!ResolvedPhysScene)
+    if (!PhysScene)
     {
         UE_LOG(ELogLevel::Warning, TEXT("InstantiatePhysicsAssetBodies: No physics scene found."));
         return;
     }
 
     const USkeleton* Skeleton = GetSkeletalMeshAsset()->GetSkeleton();
-
     OutBodies.Empty();
 
     for (int32 BodySetupIndex = 0; BodySetupIndex < PhysAsset.BodySetup.Num(); ++BodySetupIndex)
@@ -603,7 +604,6 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
 
         NewBodyInstance->BodySetup = BodySetup;
         NewBodyInstance->OwnerComponent = ResolvedOwningComponent;
-        NewBodyInstance->PhysicsScene = ResolvedPhysScene;
 
         FName BoneName = BodySetup->BoneName;
         int32 BoneIndex = Skeleton->GetReferenceSkeleton().FindBoneIndex(BoneName);
@@ -622,7 +622,7 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
         // NewBodyInstance->UpdateMassProperties(); // BodySetup의 질량 관련 설정 적용
 
         AActor* OwnerActor = GetOwner();
-        if (NewBodyInstance->InitBody(OwnerActor, ResolvedOwningComponent, NewBodyInstance->BodySetup, ResolvedPhysScene, BoneTransform * GetComponentToWorld(), UseAggregate))
+        if (NewBodyInstance->InitBody(OwnerActor, ResolvedOwningComponent, NewBodyInstance->BodySetup, PhysScene, BoneTransform * GetComponentToWorld(), UseAggregate))
         {
             OutBodies.Add(NewBodyInstance);
         }
@@ -637,9 +637,10 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(const UPhysicsAsset& 
             UseAggregate.AddActor(*NewBodyInstance->RigidActor);
         }
     }
+
 }
 
-void USkeletalMeshComponent::InstantiatePhysicsAssetConstraints(const UPhysicsAsset& PhysAsset, const TArray<FBodyInstance*>& InBodies, TArray<FConstraintInstance*>& OutConstraints, FPhysScene* PhysScene)
+void USkeletalMeshComponent::InstantiatePhysicsAssetConstraints(const UPhysicsAsset& PhysAsset, const TArray<FBodyInstance*>& InBodies, TArray<FConstraintInstance*>& OutConstraints, physx::PxScene* PhysScene)
 {
 }
 
@@ -829,11 +830,6 @@ FTransform USkeletalMeshComponent::GetBoneTransform(int32 BoneIndex, bool bInCom
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
         if (BoneIndex >= 0 && BoneIndex < RefSkeleton.GetRawRefBoneInfo().Num())
         {
-            // 애니메이션이 적용된 현재 본의 로컬 스페이스 트랜스폼을 사용해야 함
-            // BonePoseContext.Pose[BoneIndex] 는 로컬 스페이스 트랜스폼임.
-            // 이를 컴포넌트 스페이스 또는 월드 스페이스로 변환해야 함.
-
-            // 방법 1: BonePoseContext.Pose를 기반으로 계층적으로 계산
             FTransform BoneCompSpaceTransform = BonePoseContext.Pose[BoneIndex];
             int32 ParentIndex = RefSkeleton.GetRawRefBoneInfo()[BoneIndex].ParentIndex;
             while (ParentIndex != INDEX_NONE)
@@ -869,4 +865,65 @@ FTransform USkeletalMeshComponent::ConvertPxTransformToUnreal(const physx::PxTra
     FVector Position = FVector(PxTransform.p.x, PxTransform.p.y, PxTransform.p.z);
     FQuat Rotation = FQuat(PxTransform.q.x, PxTransform.q.y, PxTransform.q.z, PxTransform.q.w);
     return FTransform(Rotation, Position);
+}
+
+void USkeletalMeshComponent::CreatePhysicsBodies()
+{
+    if (GetSkeletalMeshAsset() && GetSkeletalMeshAsset()->GetSkeleton() && GetWorld())
+    {
+        PhysicsAsset = FObjectFactory::ConstructObject<UPhysicsAsset>(this);
+        if (PhysicsAsset)
+        {
+            if (bPhysicsStateCreated)
+            {
+                DestroyPhysicsState();
+            }
+            for (UBodySetup* ExistingBodySetup : PhysicsAsset->BodySetup)
+            {
+                if (ExistingBodySetup)
+                {
+                    // ExistingBodySetup->MarkPendingKill();
+                }
+            }
+            PhysicsAsset->BodySetup.Empty();
+        }
+
+        USkeleton* Skeleton = GetSkeletalMeshAsset()->GetSkeleton();
+        const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+        const TArray<FMeshBoneInfo>& BoneInfos = RefSkeleton.GetRawRefBoneInfo();
+
+        const float DefaultSphereRadius = 5.0f;
+        const float DefaultBodyMass = 0.5f;
+
+        if (BoneInfos.Num() > 0)
+        {
+            for (const FMeshBoneInfo& BoneInfo : BoneInfos)
+            {
+                UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(PhysicsAsset);
+                NewBodySetup->BoneName = BoneInfo.Name;
+
+                NewBodySetup->AggGeom.SphereElems.AddDefaulted();
+                FKSphereElem& SphereElem = NewBodySetup->AggGeom.SphereElems[0];
+                SphereElem.Radius = DefaultSphereRadius;
+                SphereElem.SetRelativeTransform(FTransform::Identity);
+
+                NewBodySetup->bOverrideMass = true;
+                NewBodySetup->Mass = DefaultBodyMass;
+                NewBodySetup->LinearDamping = 0.05f;
+                NewBodySetup->AngularDamping = 0.05f;
+
+                PhysicsAsset->BodySetup.Add(NewBodySetup);
+            }
+        }
+        if (bPhysicsStateCreated && PhysicsAsset->BodySetup.Num() == 0)
+        {
+            DestroyPhysicsState();
+        }
+
+        if (bPhysicsStateCreated)
+        {
+            DestroyPhysicsState();
+        }
+        CreatePhysicsState(false);
+    }
 }
