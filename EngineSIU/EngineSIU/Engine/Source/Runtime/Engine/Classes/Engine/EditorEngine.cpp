@@ -11,12 +11,14 @@
 #include "GameFramework/Actor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "PhysicsEngine/PhysX/PhysX.h"
 #include "PropertyEditor/ParticleViewerPanel.h"
 #include "UnrealEd/UnrealEd.h"
 #include "UObject/UObjectIterator.h"
 #include "World/ParticleViewerWorld.h"
 #include "World/World.h"
+
+#include "PhysicsEngine/PhysX/PhysX.h"
+
 
 extern FEngineLoop GEngineLoop;
 

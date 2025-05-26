@@ -140,26 +140,26 @@ void FPhysX::Release()
 void FPhysX::StartSimulatePVD()
 {
 #ifdef _DEBUG
-    if (PxPvdSceneClient* PvdClient = GScene->getScenePvdClient())
-    {
-        // 물리 제약조건(예: 조인트 등)을 PVD로 전송
-        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
-
-        // 충돌 정보(예: 두 객체가 맞닿은 지점 등)를 PVD로 전송
-        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
-
-        // 씬 쿼리(예: 레이캐스트, 오버랩 등) 결과를 PVD로 전송
-        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
-    }
+    // if (PxPvdSceneClient* PvdClient = GScene->getScenePvdClient())
+    // {
+    //     // 물리 제약조건(예: 조인트 등)을 PVD로 전송
+    //     PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+    //
+    //     // 충돌 정보(예: 두 객체가 맞닿은 지점 등)를 PVD로 전송
+    //     PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+    //
+    //     // 씬 쿼리(예: 레이캐스트, 오버랩 등) 결과를 PVD로 전송
+    //     PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+    // }
 #endif
 }
 
 void FPhysX::EndSimulatePVD()
 {
 #ifdef _DEBUG
-    if (PxPvdSceneClient* PvdClient = GScene->getScenePvdClient())
-    {
-        PvdClient->setScenePvdFlags(PxPvdSceneFlags());
-    }
+    // if (PxPvdSceneClient* PvdClient = GScene->getScenePvdClient())
+    // {
+    //     PvdClient->setScenePvdFlags(PxPvdSceneFlags());
+    // }
 #endif
 }
