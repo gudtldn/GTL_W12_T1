@@ -769,11 +769,7 @@
     <None Include="Shaders\SlateShader.hlsl" />
     <None Include="Shaders\StaticMeshVertexShader.hlsl" />
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\UpSampleShader.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </FxCompile>
+    <None Include="Shaders\UpSampleShader.hlsl"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
