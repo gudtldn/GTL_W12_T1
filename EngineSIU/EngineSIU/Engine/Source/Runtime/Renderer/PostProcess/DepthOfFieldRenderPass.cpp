@@ -9,7 +9,6 @@ FDepthOfFieldRenderPass::FDepthOfFieldRenderPass()
 {
 	// 안전한 초기값 설정
 	DOFConstant.FocusDistance = 0.5f;      // 화면 중간 깊이
-	DOFConstant.FocusRange = 0.1f;         // 적당한 초점 범위
 	DOFConstant.BlurStrength = 1.0f;       // 기본 블러 강도
 	DOFConstant.MaxBlurRadius = 3.0f;      // 최대 블러 반경 제한
 	DOFConstant.FocalLength = 50.0f;       // 표준 렌즈
@@ -35,7 +34,6 @@ void FDepthOfFieldRenderPass::ClearRenderArr()
 
 void FDepthOfFieldRenderPass::UpdateDOFConstant(float ViewportWidth, float ViewportHeight)
 {
-    DOFConstant.TextureSize = FVector2D(ViewportWidth, ViewportHeight);
     DOFConstant.InvTextureSize = FVector2D(1.0f / ViewportWidth, 1.0f / ViewportHeight);
 
     //나머지 설정은 ImGui에서 해주고있습니다.
