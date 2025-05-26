@@ -1,12 +1,32 @@
 
-Texture2D DownSampleTarget : register(t100);
-SamplerState DownSampleSampler : register(s0);
+Texture2D SceneTexture : register(t100);
+SamplerState SceneSampler : register(s0);
+Texture2D DepthTexture : register(t99);
+
 
 cbuffer ViewMode : register(b0)
 {
     uint ViewMode; 
     float3 Padding;
 }
+
+
+cbuffer DOFParams : register(b1)
+{
+    float FocusDistance; // 초점 거리 (0~1)
+    float BlurStrength; // 블러 강도
+    float FocusRange; // 초점 범위 (focusError 임계값)
+    float NearPlane; // 카메라 near plane
+    
+    float FarPlane; // 카메라 far plane
+    float FocalLength; // 렌즈 초점거리 (mm)
+    float Aperture; // F-Stop 값
+    float MaxBlurRadius; // 최대 블러 반지름
+    
+    float2 TextureSize; // 텍스처 크기 (960, 540)
+    float2 InvTextureSize; // 1/텍스처크기 (1/960, 1/540)
+}
+
 
 struct PS_Input
 {
@@ -44,7 +64,60 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
     return Output;
 }
 
+float LinearizeDepth(float z)
+{
+    float ndc = z * 2.0 - 1.0; // Depth buffer [0,1] → NDC [-1,1]
+    return (2.0 * NearPlane * FarPlane) / (FarPlane + NearPlane - ndc * (FarPlane - NearPlane));
+}
+
+float GetCoC(float d) // d: linearized depth
+{
+    float f = FocalLength * 0.001f; // mm → m로 단위 변환
+    float a = Aperture; // f-stop
+    float s = FocusDistance; // 초점 거리 (world units)
+    float coc = abs(f * f * (d - s) / (d * (s - f))) * (a / f);
+
+    return coc;
+}
+
+
 float4 mainPS(PS_Input Input) : SV_TARGET
 {
-    return DownSampleTarget.Sample(DownSampleSampler, Input.UV);
+    float2 uv = Input.UV;
+
+    float depth = DepthTexture.Sample(SceneSampler, uv).r;
+    float linearDepth = LinearizeDepth(depth);
+    
+    float4 color = SceneTexture.Sample(SceneSampler, uv);
+
+    float coc = GetCoC(linearDepth);
+    
+   
+    
+    float blurRadius = saturate(coc / MaxBlurRadius) * MaxBlurRadius;
+
+    if (blurRadius > 0.01)
+    {
+        float4 blurColor = float4(0, 0, 0, 0);
+        float totalWeight = 0.0;
+
+        int kernel = 2;
+
+        for (int x = -kernel; x <= kernel; x++)
+        {
+            for (int y = -kernel; y <= kernel; y++)
+            {
+                float2 offset = float2(x, y) * InvTextureSize * blurRadius * BlurStrength;
+                float weight = 1.0;
+                blurColor += SceneTexture.Sample(SceneSampler, uv + offset) * weight;
+                totalWeight += weight;
+            }
+        }
+
+        if (totalWeight > 0)
+            color = blurColor / totalWeight;
+    }
+
+    return color;
 }
+

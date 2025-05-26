@@ -724,15 +724,15 @@
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\include\tinyfiledialogs.h" />
     <ClInclude Include="Font\IconDefs.h" />
     <ClInclude Include="Font\RawFonts.h" />
-    <ClInclude Include="LightGridGenerator.h"/>
+    <ClInclude Include="LightGridGenerator.h" />
     <ClInclude Include="LuaScripts\LuaBindingHelpers.h" />
     <ClInclude Include="LuaScripts\LuaScriptComponent.h" />
     <ClInclude Include="LuaScripts\LuaScriptFileUtils.h" />
-    <ClCompile Include="LightGridGenerator.cpp"/>
+    <ClCompile Include="LightGridGenerator.cpp" />
     <ClInclude Include="SoundManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint"/>
+    <None Include="cpp.hint" />
     <Content Include=".editorconfig" />
     <Content Include="LuaScripts\template.lua" />
     <Natvis Include="EngineSIU.natvis" />
@@ -769,6 +769,11 @@
     <None Include="Shaders\SlateShader.hlsl" />
     <None Include="Shaders\StaticMeshVertexShader.hlsl" />
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\UpSampleShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

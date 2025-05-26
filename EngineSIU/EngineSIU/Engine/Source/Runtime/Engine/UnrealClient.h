@@ -29,6 +29,7 @@ enum class EResourceType : uint8
     ERT_PostProcessCompositing,
     ERT_DownSample2x,
     ERT_DownSample4x,
+    ERT_DOF,
     ERT_MAX,
 };
 
@@ -134,7 +135,8 @@ public:
     /// ClearColor
     ////////
     std::array<float, 4> GetClearColor(EResourceType Type) const;
-    
+   
+
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
