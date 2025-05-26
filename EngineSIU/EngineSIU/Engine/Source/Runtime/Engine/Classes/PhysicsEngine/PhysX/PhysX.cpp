@@ -14,6 +14,7 @@ namespace
 {
 PxPvd* Pvd = nullptr;
 PxPvdTransport* PvdTransport = nullptr;
+bool bPIEMode = false;
 }
 #endif
 
@@ -72,6 +73,11 @@ void FPhysX::Initialize()
 
 void FPhysX::Tick(float DeltaTime)
 {
+    if (!bPIEMode)
+    {
+        return;
+    }
+
     // TODO: FixedTime 변수 위치 옮기기
     static float AccumulatedTime = 0.0f;
     constexpr float FixedDeltaTime = 1.0f / 60.0f;
@@ -151,6 +157,7 @@ void FPhysX::StartSimulatePVD()
     //     // 씬 쿼리(예: 레이캐스트, 오버랩 등) 결과를 PVD로 전송
     //     PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
     // }
+    bPIEMode = true;
 #endif
 }
 
@@ -161,5 +168,6 @@ void FPhysX::EndSimulatePVD()
     // {
     //     PvdClient->setScenePvdFlags(PxPvdSceneFlags());
     // }
+    bPIEMode = false;
 #endif
 }
