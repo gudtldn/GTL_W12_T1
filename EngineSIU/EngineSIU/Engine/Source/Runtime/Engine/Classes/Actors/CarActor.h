@@ -139,4 +139,13 @@ private:
     static physx::PxVehicleDrivableSurfaceToTireFrictionPairs* GTireFrictionPairs;
     static physx::PxBatchQuery* GSuspensionRaycastBatchQuery; // 서스펜션 레이캐스트용 배치 쿼리
     static physx::PxQueryFilterData GRaycastQueryFilterData; // 레이캐스트 필터 데이터
+
+    // PxBatchQueryMemory에 사용될 정적 버퍼들 (모든 차량 인스턴스가 공유)
+    inline static const physx::PxU32 MAX_RAYCASTS_IN_BATCH = 4; // 예시: 최대 4개의 동시 레이캐스트
+    inline static const physx::PxU32 MAX_TOUCHES_PER_RAYCAST = 1; // 각 레이캐스트당 예상되는 최대 히트 수
+    inline static const physx::PxU32 TOTAL_RAYCAST_TOUCH_BUFFER_SIZE = MAX_RAYCASTS_IN_BATCH * MAX_TOUCHES_PER_RAYCAST;
+
+    static physx::PxRaycastHit GBatchQueryRaycastTouchBuffer[TOTAL_RAYCAST_TOUCH_BUFFER_SIZE];
+    static physx::PxRaycastQueryResult GSharedRaycastResultBuffer[MAX_RAYCASTS_IN_BATCH];
+    static physx::PxRaycastHit         GSharedRaycastTouchBuffer[TOTAL_RAYCAST_TOUCH_BUFFER_SIZE];
 };

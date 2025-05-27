@@ -3,6 +3,7 @@
 #include "Components/SphereComp.h"
 #include "Engine/FObjLoader.h"
 #include "foundation/PxMath.h"
+#include "PhysicsEngine/PhysX/PhysX.h"
 
 using namespace physx;
 
@@ -10,10 +11,9 @@ physx::PxVehicleDrivableSurfaceToTireFrictionPairs* ACarActor::GTireFrictionPair
 physx::PxBatchQuery* ACarActor::GSuspensionRaycastBatchQuery = nullptr;
 physx::PxQueryFilterData ACarActor::GRaycastQueryFilterData;
 
-extern PxScene* GScene;
-extern PxPhysics* GPhysics;
-extern PxCooking* GCooking;
-extern PxMaterial* GMaterial;
+physx::PxRaycastHit ACarActor::GBatchQueryRaycastTouchBuffer[TOTAL_RAYCAST_TOUCH_BUFFER_SIZE];
+physx::PxRaycastQueryResult  ACarActor::GSharedRaycastResultBuffer[MAX_RAYCASTS_IN_BATCH];
+physx::PxRaycastHit          ACarActor::GSharedRaycastTouchBuffer[TOTAL_RAYCAST_TOUCH_BUFFER_SIZE];
 
 ACarActor::ACarActor()
     : PhysXChassisActor(nullptr), PhysXVehicleDrive4W(nullptr)
@@ -57,6 +57,8 @@ ACarActor::ACarActor()
     }
     VehicleWheelQueryStateForUpdates[0].wheelQueryResults = InternalWheelQueryResults;
     VehicleWheelQueryStateForUpdates[0].nbWheelQueryResults = 4;
+
+    memset(RawRaycastResultsBuffer, 0, sizeof(PxRaycastQueryResult) * 4);
 }
 
 ACarActor::~ACarActor()
@@ -117,8 +119,11 @@ bool ACarActor::SetupCommonVehicleDataGlobal(physx::PxPhysics& PhysXSDK, physx::
     GTireFrictionPairs->setTypePairFriction(0, 0, VehicleParams::TireFrictionMultiplier); // (타이어타입0, 지면타입0, 마찰계수)
 
     // 2. 서스펜션 레이캐스트 배치 쿼리 설정
-    physx::PxU32 MaxNumWheelsInScene = 1 * 4; // 예시: 1대 차량, 휠 4개
-    physx::PxBatchQueryDesc BatchQueryDesc(MaxNumWheelsInScene, 0, 0);
+    physx::PxBatchQueryDesc BatchQueryDesc(ACarActor::MAX_RAYCASTS_IN_BATCH, 0, 0);
+
+    BatchQueryDesc.queryMemory.userRaycastResultBuffer = ACarActor::GSharedRaycastResultBuffer;
+    BatchQueryDesc.queryMemory.userRaycastTouchBuffer = ACarActor::GSharedRaycastTouchBuffer;
+    BatchQueryDesc.queryMemory.raycastTouchBufferSize = ACarActor::TOTAL_RAYCAST_TOUCH_BUFFER_SIZE;
 
     // 레이캐스트 필터링: 모든 정적(static) 지오메트리와 충돌 (간단한 예시)
     // 실제로는 PxQueryFilterCallback 등으로 더 정교한 필터링 필요 (차량 자신 제외 등)
@@ -247,7 +252,7 @@ void ACarActor::CreateVehiclePhysXSimulationData_Internal(const physx::PxVec3 Wh
         PhysXWheelsSimData->setWheelCentreOffset(i, WheelCenterOffsets_PhysXVehicleLocal[i]);
         PhysXWheelsSimData->setSuspForceAppPointOffset(i, WheelCenterOffsets_PhysXVehicleLocal[i]);
         PhysXWheelsSimData->setTireForceAppPointOffset(i, WheelCenterOffsets_PhysXVehicleLocal[i]);
-        PhysXWheelsSimData->setWheelShapeMapping(i, i); // 휠 지오메트리 셰이프 인덱스 매핑
+        PhysXWheelsSimData->setWheelShapeMapping(i, -1); // 휠 지오메트리 셰이프 인덱스 매핑
     }
 
     // 2. 엔진, 기어, 클러치, 디퍼렌셜 데이터 (PxVehicleDriveSimData4W)
@@ -313,10 +318,10 @@ void ACarActor::InitializeCarPhysicsInternal()
 {
     if (bIsPhysXInitialized) return;
 
-    physx::PxPhysics* PhysXSDK = GPhysics;
-    physx::PxScene* PhysXScene = GScene;
-    physx::PxCooking* PhysXCooking = GCooking;
-    physx::PxMaterial* DefaultChassisMaterial = GMaterial;
+    physx::PxPhysics* PhysXSDK = FPhysX::GPhysics;
+    physx::PxScene* PhysXScene = FPhysX::GScene;
+    physx::PxCooking* PhysXCooking = FPhysX::GCooking;
+    physx::PxMaterial* DefaultChassisMaterial = FPhysX::GMaterial;
 
     if (!PhysXSDK || !PhysXScene || !PhysXCooking || !DefaultChassisMaterial)
     {
@@ -379,7 +384,7 @@ void ACarActor::UpdateCarPhysicsStateInternal(float DeltaTime)
 {
     if (!bIsPhysXInitialized || !PhysXVehicleDrive4W || !GTireFrictionPairs || !this->PhysXWheelsSimData) return;
 
-    physx::PxScene* PhysXScene = GScene;
+    physx::PxScene* PhysXScene = FPhysX::GScene;
     if (!PhysXScene) return;
 
     // 1. PxRaycastQueryResult -> PxWheelQueryResult 변환
@@ -450,8 +455,8 @@ void ACarActor::UpdateCarVisualsInternal()
             const physx::PxTransform WheelLocalPose_PhysXVehicle = InternalWheelQueryResults[i].localPose; // 또는 VehicleWheelQueryStateForUpdates[0].wheelQueryResults[i].localPose
             const physx::PxTransform WheelGlobalPose_Engine = ChassisGlobalPose_Engine * WheelLocalPose_PhysXVehicle;
 
-            Wheels[i]->SetWorldLocation(FVector(WheelGlobalPose_Engine.p.x, WheelGlobalPose_Engine.p.y, WheelGlobalPose_Engine.p.z));
-            Wheels[i]->SetWorldRotation(FRotator(FQuat(WheelGlobalPose_Engine.q.x, WheelGlobalPose_Engine.q.y, WheelGlobalPose_Engine.q.z, WheelGlobalPose_Engine.q.w)));
+            Wheels[i]->SetRelativeLocation(FVector(WheelGlobalPose_Engine.p.x, WheelGlobalPose_Engine.p.y, WheelGlobalPose_Engine.p.z));
+            Wheels[i]->SetRelativeRotation(FRotator(FQuat(WheelGlobalPose_Engine.q.x, WheelGlobalPose_Engine.q.y, WheelGlobalPose_Engine.q.z, WheelGlobalPose_Engine.q.w)));
         }
     }
 }
@@ -463,7 +468,7 @@ void ACarActor::ShutdownCarPhysicsInternal()
         return;
     }
 
-    physx::PxScene* PhysXScene = GScene;
+    physx::PxScene* PhysXScene = FPhysX::GScene;
 
     // 1. 씬에서 섀시 액터 제거 (RemoveFromScene 함수 로직 통합)
     if (PhysXChassisActor && PhysXScene && bIsInScene)
@@ -538,7 +543,6 @@ void ACarActor::PerformSuspensionRaycasts(physx::PxScene* InPhysXScene)
     if (!PhysXVehicleDrive4W || !GSuspensionRaycastBatchQuery) return;
 
     physx::PxVehicleWheels* Vehicles[1] = { PhysXVehicleDrive4W };
-    bool PerformRaycast[1] = { true };
     const physx::PxU32 NumWheelsToRaycast = 4; // 이 차량의 휠 개수
 
     PxVehicleSuspensionRaycasts(
@@ -546,9 +550,14 @@ void ACarActor::PerformSuspensionRaycasts(physx::PxScene* InPhysXScene)
         1,                          // nbVehicles
         Vehicles,
         NumWheelsToRaycast,         // nbSceneQueryResults (이 차량의 휠 개수)
-        RawRaycastResultsBuffer,    // sceneQueryResults (PxRaycastQueryResult*)
-        PerformRaycast                        // vehiclesToRaycast (선택적, 모든 차량 레이캐스트 시 NULL)
+        ACarActor::GSharedRaycastResultBuffer,    // sceneQueryResults (PxRaycastQueryResult*)
+        NULL                        // vehiclesToRaycast (선택적, 모든 차량 레이캐스트 시 NULL)
     );
+
+    for (physx::PxU32 i = 0; i < NumWheelsToRaycast; ++i)
+    {
+        RawRaycastResultsBuffer[i] = ACarActor::GSharedRaycastResultBuffer[i];
+    }
 }
 
 void ACarActor::UpdateVehiclePhysicsState(float DeltaTime, const physx::PxVec3& Gravity_Engine)
@@ -663,7 +672,7 @@ void ACarActor::BeginPlay()
     Super::BeginPlay();
 
     // 차량 공통 데이터 설정
-    if (!SetupCommonVehicleDataGlobal(*GPhysics, *GScene, *GMaterial))
+    if (!SetupCommonVehicleDataGlobal(*FPhysX::GPhysics, *FPhysX::GScene, *FPhysX::GMaterial))
     {
         return;
     }
@@ -697,12 +706,11 @@ void ACarActor::Tick(float DeltaTime)
         // ProcessPlayerInput(...); // <- PxVehicleDrive4WRawInputData 필요
 
         // 2. 레이캐스트 (simulate 전에 호출되어야 함)
-         PerformSuspensionRaycasts(GScene); // <- 이것은 simulate 전에 호출되어야 함
+         PerformSuspensionRaycasts(FPhysX::GScene); // <- 이것은 simulate 전에 호출되어야 함
 
         // !!! 여기서 PxScene::simulate() 와 fetchResults()가 호출되었다고 가정 !!!
         // (실제로는 EngineCore에서 이루어져야 함)
-         GScene->simulate(DeltaTime);
-         GScene->fetchResults(true);
+         FPhysX::Tick(DeltaTime);
 
         // 3. 물리 상태 업데이트 (fetchResults 후에 호출되어야 함)
         UpdateCarPhysicsStateInternal(DeltaTime);

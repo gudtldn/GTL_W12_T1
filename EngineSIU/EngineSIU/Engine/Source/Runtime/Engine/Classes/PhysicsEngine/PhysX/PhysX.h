@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 namespace physx
@@ -10,6 +10,7 @@ class PxScene;
 class PxDefaultCpuDispatcher;
 class PxPhysics;
 class PxFoundation;
+class PxCooking;
 }
 
 struct FPhysX
@@ -27,6 +28,7 @@ public:
     inline static physx::PxDefaultCpuDispatcher* GDispatcher = nullptr;
     inline static physx::PxScene* GScene = nullptr;
     inline static physx::PxMaterial* GMaterial = nullptr; // 기본적인 재질
+    inline static physx::PxCooking* GCooking = nullptr;
 
 #ifdef _DEBUG
     inline static physx::PxPvd* Pvd = nullptr;

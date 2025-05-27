@@ -180,7 +180,7 @@ void FEngineLoop::Tick()
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
-        FPhysX::Tick(DeltaTime);
+        //FPhysX::Tick(DeltaTime);
 
         // TODO: 반드시 리펙토링 해야 함
         for (UPrimitiveComponent* Primitive : TObjectRange<UPrimitiveComponent>())
