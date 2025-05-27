@@ -172,7 +172,10 @@ void FEngineLoop::Tick()
         // TODO: 반드시 리펙토링 해야 함
         for (UPrimitiveComponent* Primitive : TObjectRange<UPrimitiveComponent>())
         {
-            Primitive->BodyInstance.SyncComponentToPhysX();
+            if (Primitive->GetWorld() == GEngine->ActiveWorld)
+            {
+                Primitive->BodyInstance.SyncComponentToPhysX();
+            }
         }
 
         GEngine->Tick(DeltaTime);
@@ -182,7 +185,10 @@ void FEngineLoop::Tick()
         // TODO: 반드시 리펙토링 해야 함
         for (UPrimitiveComponent* Primitive : TObjectRange<UPrimitiveComponent>())
         {
-            Primitive->PhysicsTick();
+            if (Primitive->GetWorld() == GEngine->ActiveWorld)
+            {
+                Primitive->PhysicsTick();
+            }
         }
 
         Render();
