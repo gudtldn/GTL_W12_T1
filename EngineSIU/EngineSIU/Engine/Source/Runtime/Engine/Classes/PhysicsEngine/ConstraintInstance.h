@@ -40,5 +40,6 @@ public:
     // TODO: Implements This
     void TermConstraint()
     {
+        UE_LOG(ELogLevel::Warning, TEXT("TermConstraint is not implemented yet."));
     }
 };
