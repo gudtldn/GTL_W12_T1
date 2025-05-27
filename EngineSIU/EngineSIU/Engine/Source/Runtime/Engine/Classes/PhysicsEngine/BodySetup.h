@@ -16,4 +16,9 @@ public:
         EditAnywhere, ({ .Category = "BodySetup", .DisplayName = "Primitives" }),
         FKAggregateGeom, AggGeom, ;
     )
+
+    UPROPERTY(
+        EditAnywhere | LuaReadWrite, ({ .Category = "Physics", .ClampMin = 0.001f }),
+        float, Mass, = 10.f;
+    )
 };

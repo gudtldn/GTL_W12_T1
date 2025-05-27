@@ -254,10 +254,10 @@ void FBodyInstance::InitBody(
     if (PImpl->bIsSimulatingPhysics && PImpl->RigidActor->is<PxRigidDynamic>())
     {
         // TODO: BodySetupRef 또는 OwnerComponent에서 질량/관성 관련 데이터 가져오기
-        constexpr float Mass = 10.0f; // TODO: 예시 질량
-        if (InBodySetup /* && BodySetupRef->Mass > 0 */)
+        float Mass = 0.001f;
+        if (InBodySetup && InBodySetup->Mass > 0)
         {
-            /* Mass = BodySetupRef->Mass; */
+            Mass = InBodySetup->Mass; 
         }
         PxRigidBodyExt::updateMassAndInertia(*static_cast<PxRigidDynamic*>(PImpl->RigidActor), Mass);
     }
