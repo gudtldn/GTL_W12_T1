@@ -3,21 +3,6 @@
 
 using namespace physx;
 
-PxFoundation* GFoundation = nullptr;
-PxPhysics* GPhysics = nullptr;
-PxDefaultCpuDispatcher* GDispatcher = nullptr;
-PxScene* GScene = nullptr;
-PxMaterial* GMaterial = nullptr; // 기본적인 재질
-
-#ifdef _DEBUG
-namespace
-{
-PxPvd* Pvd = nullptr;
-PxPvdTransport* PvdTransport = nullptr;
-bool bPIEMode = false;
-}
-#endif
-
 void FPhysX::Initialize()
 {
     static PxDefaultAllocator DefaultAllocatorCallback;
