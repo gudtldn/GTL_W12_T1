@@ -61,7 +61,7 @@ void FPhysX::Initialize()
 
 void FPhysX::Tick(float DeltaTime)
 {
-#if _DEBUG
+#ifdef _DEBUG
     if (!bPIEMode)
     {
         return;
