@@ -133,7 +133,6 @@ PxShape* FBodyInstance::CreateShapeFromConvex(const FKConvexElem& ConvexElem, co
 FBodyInstance::FBodyInstance()
     : OwnerComponent(nullptr)
     , RigidActor(nullptr)
-    , UserData(nullptr)
     , bIsSimulatingPhysics(false)
 {
 }
@@ -388,15 +387,4 @@ void FBodyInstance::SetSimulatePhysics(bool bSimulate)
 bool FBodyInstance::IsSimulatingPhysics() const
 {
     return bIsSimulatingPhysics;
-}
-
-
-void FBodyInstance::SetUserData(void* InUserData)
-{
-    UserData = InUserData;
-}
-
-void* FBodyInstance::GetUserData() const
-{
-    return UserData;
 }

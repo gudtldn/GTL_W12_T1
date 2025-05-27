@@ -51,9 +51,6 @@ public:
     void SetSimulatePhysics(bool bSimulate);
     bool IsSimulatingPhysics() const;
 
-    void SetUserData(void* InUserData);
-    void* GetUserData() const;
-
 private:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
 
@@ -66,9 +63,7 @@ private:
     physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
     physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const;
 
-
     physx::PxRigidActor* RigidActor;
-    void* UserData;
 
     // 현재 물리 시뮬레이션 여부
     bool bIsSimulatingPhysics;
