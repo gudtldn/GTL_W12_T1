@@ -11,6 +11,9 @@
 #include "Animation/AnimTypes.h"
 #include "Contents/AnimInstance/MyAnimInstance.h"
 #include "Engine/Engine.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/ConstraintInstance.h"
+#include "PhysicsEngine/PhysicsAsset.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
@@ -61,6 +64,14 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
+}
+
+void USkeletalMeshComponent::PhysicsTick()
+{
+    if (bSimulatePhysics && Bodies.Num() > 0)
+    {
+        SyncBodiesToBones();
+    }
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -367,6 +378,210 @@ bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
         }
     }
     return false;
+}
+
+void USkeletalMeshComponent::CreatePhysicsState()
+{
+    // 기존 물리 상태가 있다면 먼저 파괴
+    ClearPhysicsState();
+
+    if (!SkeletalMeshAsset)
+    {
+        return;
+    }
+
+    if (SkeletalMeshAsset->GetPhysicsAsset() && GetWorld()) // 월드가 있어야 Scene에 추가 가능
+    {
+        InstantiatePhysicsAsset();
+    }
+}
+
+void USkeletalMeshComponent::DestroyPhysicsState()
+{
+    ClearPhysicsState();
+}
+
+void USkeletalMeshComponent::ClearPhysicsState()
+{
+    // Constraints 먼저 해제 (Bodies를 참조할 수 있으므로)
+    for (FConstraintInstance* Constraint : Constraints)
+    {
+        if (Constraint)
+        {
+            Constraint->TermConstraint(); // 내부적으로 PxJoint 해제 등
+            delete Constraint;
+        }
+    }
+    Constraints.Empty();
+
+    for (FBodyInstance* Body : Bodies)
+    {
+        if (Body)
+        {
+            Body->TermBody(); // 내부적으로 PxRigidActor 해제 등
+            delete Body;
+        }
+    }
+    Bodies.Empty();
+}
+
+void USkeletalMeshComponent::InstantiatePhysicsAsset()
+{
+    if (!(SkeletalMeshAsset && SkeletalMeshAsset->GetPhysicsAsset()))
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
+
+    // 1. Bodies 생성
+    Bodies.Reserve(PhysAsset->BodySetup.Num());
+    for (UBodySetup* Setup : PhysAsset->BodySetup)
+    {
+        if (Setup)
+        {
+            FBodyInstance* NewBodyInstance = new FBodyInstance();
+
+            // Setup->BoneName을 사용하여 이 BodySetup에 연결된 본의 인덱스를 찾고,
+            // 해당 본의 현재 월드 또는 컴포넌트 공간 트랜스폼을 가져옵니다.
+            // 이 부분은 스켈레탈 애니메이션 시스템과의 연동이 필요합니다.
+            FTransform BodyTransform = GetComponentTransform(); // 기본값: 컴포넌트 트랜스폼
+            int32 BoneIndex = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->BoneName);
+            if (BoneIndex != INDEX_NONE)
+            {
+                // BodyTransform = GetBoneTransform(BoneIndex); // 컴포넌트 공간 또는 월드 공간 트랜스폼 가져오기
+            }
+
+            // InitBody 호출. UPrimitiveComponent 대신 this (USkeletalMeshComponent*)를 전달하거나,
+            // FBodyInstance가 UActorComponent*를 받도록 수정할 수 있습니다.
+            // 여기서는 UPrimitiveComponent의 파생 클래스라고 가정하고 this 전달.
+            NewBodyInstance->InitBody(this, Setup, BodyTransform, bSimulatePhysics); // bSimulatePhysics는 USMC 멤버
+            Bodies.Add(NewBodyInstance);
+        }
+    }
+
+    // 2. Constraints 생성 (UPhysicsAsset에 ConstraintSetup 배열이 있다고 가정)
+    // if (PhysAsset->ConstraintSetups.Num() > 0) // ConstraintSetups는 UPhysicsAsset의 TArray<UConstraintSetup*> 멤버라고 가정
+    // {
+    //     Constraints.Reserve(PhysAsset->ConstraintSetups.Num());
+    //     for (UConstraintSetup* ConstraintSetup : PhysAsset->ConstraintSetups)
+    //     {
+    //         if (ConstraintSetup)
+    //         {
+    //             // ConstraintSetup에서 필요한 정보 (연결할 두 Body의 인덱스 또는 이름, 조인트 설정 등)를 가져옵니다.
+    //             // 해당 Body 인덱스를 사용하여 Bodies 배열에서 FBodyInstance 포인터를 찾습니다.
+    //             FBodyInstance* Body1 = nullptr;
+    //             FBodyInstance* Body2 = nullptr;
+    //             // ... (ConstraintSetup->BoneName1, ConstraintSetup->BoneName2 등으로 Bodies 배열에서 검색) ...
+    //
+    //             if (Body1 && Body2) // 두 Body가 모두 유효해야 조인트 생성 가능
+    //             {
+    //                 FConstraintInstance* NewConstraintInstance = new FConstraintInstance();
+    //                 // NewConstraintInstance->InitConstraint(this, ConstraintSetup, Body1, Body2);
+    //                 Constraints.Add(NewConstraintInstance);
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+void USkeletalMeshComponent::SyncBodiesToBones()
+{
+    // 이 함수는 물리 시뮬레이션이 완료된 후 (FPhysX::Tick 이후) 호출되어야 합니다.
+    // 그리고 bSimulatePhysics가 true일 때만 의미가 있습니다.
+
+    if (!bSimulatePhysics || Bodies.Num() == 0)
+    {
+        return;
+    }
+
+    UPhysicsAsset* CurrentPhysicsAsset = SkeletalMeshAsset->GetPhysicsAsset();
+    USkeletalMesh* CurrentSkeletalMesh = GetSkeletalMeshAsset(); // 또는 멤버 변수 직접 사용
+
+    if (!CurrentPhysicsAsset || !CurrentSkeletalMesh || !CurrentSkeletalMesh->GetSkeleton())
+    {
+        // 필요한 에셋 정보가 없으면 동기화 불가
+        // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: Missing PhysicsAsset, SkeletalMesh, or Skeleton."));
+        return;
+    }
+
+    USkeleton* Skeleton = CurrentSkeletalMesh->GetSkeleton();
+
+    // 컴포넌트의 현재 월드 트랜스폼 (본 트랜스폼을 컴포넌트 공간으로 변환 시 필요)
+    // const FTransform ComponentToWorldInverse = GetComponentToWorld().Inverse();
+
+    for (int32 BodyInstanceIndex = 0; BodyInstanceIndex < Bodies.Num(); ++BodyInstanceIndex)
+    {
+        FBodyInstance* BodyInst = Bodies[BodyInstanceIndex];
+
+        // 해당 FBodyInstance에 대한 UBodySetup 정보 가져오기
+        // (PhysicsAsset의 BodySetup 배열과 Bodies 배열의 인덱스가 일치한다고 가정)
+        if (BodyInstanceIndex >= CurrentPhysicsAsset->BodySetup.Num())
+        {
+            // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: BodyInstanceIndex out of bounds for PhysicsAsset BodySetups."));
+            continue;
+        }
+        UBodySetup* AssociatedBodySetup = CurrentPhysicsAsset->BodySetup[BodyInstanceIndex];
+
+        if (BodyInst && BodyInst->IsValidBodyInstance() && BodyInst->IsSimulatingPhysics() && AssociatedBodySetup)
+        {
+            FName BoneName = AssociatedBodySetup->BoneName; // UBodySetup에서 본 이름 가져오기
+            if (BoneName == NAME_None)
+            {
+                // 이 BodySetup이 특정 본에 연결되지 않았다면 (예: 전체를 감싸는 하나의 바디),
+                // 컴포넌트 자체의 트랜스폼을 업데이트하거나 다른 처리를 할 수 있음.
+                // 여기서는 본에 연결된 경우만 처리.
+                continue;
+            }
+
+            // 본 인덱스 확인
+            int32 BoneIndex = Skeleton->FindBoneIndex(BoneName);
+            if (BoneIndex == INDEX_NONE)
+            {
+                // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: Bone '%s' not found in Skeleton."), *BoneName.ToString());
+                continue;
+            }
+
+            // 1. FBodyInstance로부터 PhysX Actor의 현재 월드 트랜스폼을 가져옵니다.
+            FTransform PhysXWorldTransform = BodyInst->GetWorldTransform();
+
+            // 2. 가져온 월드 트랜스폼을 해당 본에 직접 설정합니다.
+            //    이 작업은 애니메이션 결과를 덮어쓰게 됩니다.
+            //    SetBoneWorldSpaceTransform 함수가 있다고 가정.
+            //    이 함수는 내부적으로 다른 자식 본들의 상대적 위치도 업데이트해야 할 수 있음 (Forward Kinematics).
+            //    또는, 단순히 해당 본의 공간 변환 정보만 업데이트하고,
+            //    메시 디포메이션은 나중에 전체 본 계층 구조를 기반으로 수행될 수 있음.
+
+            // 예시: 가상의 SetBoneWorldTransform 함수 호출
+            // SetBoneWorldTransform(BoneIndex, PhysXWorldTransform);
+            // 또는
+            // SetBoneTransformByName(BoneName, PhysXWorldTransform, EBoneSpaces::WorldSpace);
+
+            // 만약 본 트랜스폼을 컴포넌트 공간으로 설정해야 한다면:
+            // FTransform BoneComponentSpaceTransform = PhysXWorldTransform * ComponentToWorldInverse;
+            // SetBoneTransformByName(BoneName, BoneComponentSpaceTransform, EBoneSpaces::ComponentSpace);
+
+            // UE_LOG(LogSkeletalMesh, Verbose, TEXT("Bone '%s' (Index %d) synced to PhysX Transform: %s"),
+            //     *BoneName.ToString(), BoneIndex, *PhysXWorldTransform.ToString());
+
+
+            // 실제 언리얼 엔진에서는 이 과정이 더 복잡합니다.
+            // - SpaceBases (로컬 공간), BoneSpaceTransforms (컴포넌트 공간) 등을 업데이트.
+            // - Kinematic 본과 Simulated 본을 구분하여 처리.
+            // - 텔레포트 여부, 물리 블렌딩 가중치 등을 고려.
+            // - `FillComponentSpaceTransforms()` 같은 함수를 통해 최종 컴포넌트 공간 변환 배열을 채움.
+
+            // 여기서는 가장 기본적인 "물리 결과를 본의 월드 트랜스폼으로 직접 적용"하는 로직을 가정합니다.
+            // 사용자 엔진의 스켈레탈 애니메이션 시스템 구조에 맞춰 구체적인 본 트랜스폼 설정 방식을 구현해야 합니다.
+            // 예를 들어, 각 본의 FMatrix 또는 FTransform 배열을 직접 업데이트할 수 있습니다.
+            // GetEditableBoneTransform(BoneIndex).SetFromMatrix(PhysXWorldTransform.ToMatrixWithScale());
+        }
+    }
+
+    // 모든 물리 본의 트랜스폼이 업데이트된 후,
+    // 컴포넌트의 최종 바운딩 박스 등을 다시 계산해야 할 수 있습니다.
+    // MarkRenderTransformDirty(); // 렌더링 시스템에 트랜스폼 변경 알림
+    // UpdateBounds(); // 바운딩 볼륨 업데이트
 }
 
 void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)

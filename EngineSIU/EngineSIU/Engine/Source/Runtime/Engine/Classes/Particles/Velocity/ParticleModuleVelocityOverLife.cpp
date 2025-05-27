@@ -84,11 +84,11 @@ void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, in
     // 월드공간 변환 및 오너 스케일 적용
     if (bInWorldSpace)
     {
-        NewVelocity = Owner->Component->GetComponentToWorld().TransformVector(NewVelocity);
+        NewVelocity = Owner->Component->GetComponentTransform().TransformVector(NewVelocity);
     }
     if (bApplyOwnerScale)
     {
-        NewVelocity *= Owner->Component->GetComponentToWorld().GetScale3D();
+        NewVelocity *= Owner->Component->GetComponentTransform().GetScale3D();
     }
 
     Particle.BaseVelocity = NewVelocity;

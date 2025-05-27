@@ -48,6 +48,9 @@ void FPhysX::Initialize()
     GDispatcher = PxDefaultCpuDispatcherCreate(8); // 연산에 사용할 스레드 개수
     SceneDesc.cpuDispatcher = GDispatcher;
     SceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_ACTIVE_ACTORS;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
     GScene = GPhysics->createScene(SceneDesc);
 
 #ifdef _DEBUG

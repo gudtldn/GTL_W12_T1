@@ -169,9 +169,28 @@ void FEngineLoop::Tick()
 
         const float DeltaTime = static_cast<float>(ElapsedTime / 1000.f);
 
+        // TODO: 반드시 리펙토링 해야 함
+        for (UPrimitiveComponent* Primitive : TObjectRange<UPrimitiveComponent>())
+        {
+            if (Primitive->GetWorld() == GEngine->ActiveWorld)
+            {
+                Primitive->BodyInstance.SyncComponentToPhysX();
+            }
+        }
+
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
         FPhysX::Tick(DeltaTime);
+
+        // TODO: 반드시 리펙토링 해야 함
+        for (UPrimitiveComponent* Primitive : TObjectRange<UPrimitiveComponent>())
+        {
+            if (Primitive->GetWorld() == GEngine->ActiveWorld)
+            {
+                Primitive->PhysicsTick();
+            }
+        }
+
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();

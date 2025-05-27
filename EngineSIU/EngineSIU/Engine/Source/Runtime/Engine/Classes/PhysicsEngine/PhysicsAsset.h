@@ -15,6 +15,7 @@ public:
 
 public:
     UPROPERTY(
+        EditAnywhere | EditInline,
         TArray<UBodySetup*>, BodySetup, ;
     )
 };

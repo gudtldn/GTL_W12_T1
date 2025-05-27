@@ -15,4 +15,13 @@ public:
     FKConvexElem& operator=(const FKConvexElem&) = default;
     FKConvexElem(FKConvexElem&&) = default;
     FKConvexElem& operator=(FKConvexElem&&) = default;
+
+public:
+    UPROPERTY(
+        TArray<FVector>, VertexData
+    )
+
+    UPROPERTY(
+        TArray<int32>, IndexData
+    )
 };

@@ -33,6 +33,7 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     virtual void TickComponent(float DeltaTime) override;
+    virtual void PhysicsTick() override;
 
     virtual void TickPose(float DeltaTime) override;
 
@@ -129,6 +130,16 @@ public:
 
     /** Array of FConstraintInstance structs, storing per-instance state about each constraint. */
     TArray<FConstraintInstance*> Constraints;
+
+    // 물리 상태 생성/파괴
+    virtual void CreatePhysicsState() override;
+    virtual void DestroyPhysicsState() override;
+
+protected:
+    void ClearPhysicsState();
+    void InstantiatePhysicsAsset();
+
+    void SyncBodiesToBones();
 
 private:
     FPoseContext BonePoseContext;

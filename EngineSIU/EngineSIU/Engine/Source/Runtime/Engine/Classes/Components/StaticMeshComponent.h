@@ -45,7 +45,13 @@ public:
         }
     }
 
+    virtual UBodySetup* GetBodySetup() const override { return StaticMesh ? StaticMesh->GetBodySetup() : nullptr; }
+
 protected:
-    UStaticMesh* StaticMesh = nullptr;
+    UPROPERTY(
+        EditAnywhere | EditInline,
+        UStaticMesh*, StaticMesh, = nullptr;
+    )
+
     int SelectedSubMeshIndex = -1;
 };

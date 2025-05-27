@@ -12,7 +12,7 @@ class UStaticMesh : public UObject
     DECLARE_CLASS(UStaticMesh, UObject)
 
 public:
-    UStaticMesh() = default;
+    UStaticMesh();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
@@ -43,7 +43,7 @@ private:
     TArray<FStaticMaterial*> Materials;
 
     UPROPERTY(
-        EditAnywhere | Transient | DuplicateTransient, { .Category = "StaticMesh" },
+        EditAnywhere | EditInline | Transient | DuplicateTransient, { .Category = "StaticMesh" },
         UBodySetup*, BodySetup, = nullptr;
     )
 };
