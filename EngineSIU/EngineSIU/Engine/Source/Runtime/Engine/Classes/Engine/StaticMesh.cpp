@@ -2,8 +2,14 @@
 #include "Engine/FObjLoader.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
-
+#include "PhysicsEngine/BodySetup.h"
 #include "Engine/Asset/StaticMeshAsset.h"
+
+
+UStaticMesh::UStaticMesh()
+{
+    BodySetup = FObjectFactory::ConstructObject<UBodySetup>(this);
+}
 
 UObject* UStaticMesh::Duplicate(UObject* InOuter)
 {

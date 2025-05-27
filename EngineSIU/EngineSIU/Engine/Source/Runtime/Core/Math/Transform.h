@@ -37,6 +37,7 @@ struct FTransform
     void SetRotation(const FQuat& InRotation) { Rotation = InRotation; }
     
     // 위치 관련 함수들
+    FVector GetLocation() const { return Translation; }
     FVector GetTranslation() const { return Translation; }
     void SetTranslation(const FVector& InTranslation) { Translation = InTranslation; }
     void AddToTranslation(const FVector& InTranslation) { Translation += InTranslation; }
@@ -63,7 +64,7 @@ struct FTransform
     
     void Blend(const FTransform& Atom1, const FTransform& Atom2, float Alpha);
     FTransform BlendWith(const FTransform& Other, float Alpha) const;
-    
+
     // 선형 보간 함수
     static FTransform LerpTransform(const FTransform& A, const FTransform& B, float Alpha);
     

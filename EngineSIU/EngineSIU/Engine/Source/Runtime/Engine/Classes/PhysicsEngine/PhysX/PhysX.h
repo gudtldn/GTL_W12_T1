@@ -1,5 +1,17 @@
 ﻿#pragma once
 
+
+namespace physx
+{
+class PxPvdTransport;
+class PxPvd;
+class PxMaterial;
+class PxScene;
+class PxDefaultCpuDispatcher;
+class PxPhysics;
+class PxFoundation;
+}
+
 struct FPhysX
 {
     static void Initialize();
@@ -8,4 +20,17 @@ struct FPhysX
 
     static void StartSimulatePVD();
     static void EndSimulatePVD();
+
+public:
+    inline static physx::PxFoundation* GFoundation = nullptr;
+    inline static physx::PxPhysics* GPhysics = nullptr;
+    inline static physx::PxDefaultCpuDispatcher* GDispatcher = nullptr;
+    inline static physx::PxScene* GScene = nullptr;
+    inline static physx::PxMaterial* GMaterial = nullptr; // 기본적인 재질
+
+#ifdef _DEBUG
+    inline static physx::PxPvd* Pvd = nullptr;
+    inline static physx::PxPvdTransport* PvdTransport = nullptr;
+    inline static bool bPIEMode = false;
+#endif
 };

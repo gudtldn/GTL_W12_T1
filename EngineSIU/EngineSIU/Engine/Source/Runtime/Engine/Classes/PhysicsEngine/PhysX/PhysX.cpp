@@ -4,22 +4,6 @@
 
 using namespace physx;
 
-PxFoundation* GFoundation = nullptr;
-PxPhysics* GPhysics = nullptr;
-PxDefaultCpuDispatcher* GDispatcher = nullptr;
-PxScene* GScene = nullptr;
-PxMaterial* GMaterial = nullptr; // 기본적인 재질
-PxCooking* GCooking = nullptr;
-
-#ifdef _DEBUG
-namespace
-{
-PxPvd* Pvd = nullptr;
-PxPvdTransport* PvdTransport = nullptr;
-bool bPIEMode = false;
-}
-#endif
-
 void FPhysX::Initialize()
 {
     static PxDefaultAllocator DefaultAllocatorCallback;
@@ -50,6 +34,9 @@ void FPhysX::Initialize()
     GDispatcher = PxDefaultCpuDispatcherCreate(8); // 연산에 사용할 스레드 개수
     SceneDesc.cpuDispatcher = GDispatcher;
     SceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_ACTIVE_ACTORS;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
     GScene = GPhysics->createScene(SceneDesc);
 
     if (GPhysics) // GPhysics가 성공적으로 생성되었는지 확인

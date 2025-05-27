@@ -22,25 +22,25 @@ public:
 public:
     // 구체 콜리전
     UPROPERTY(
-        EditAnywhere | EditFixedSize, ({ .Category = "Aggregate Geometry", .DisplayName = "Spheres" }),
+        EditAnywhere /*| EditFixedSize*/, ({ .Category = "Aggregate Geometry", .DisplayName = "Spheres" }),
         TArray<FKSphereElem>, SphereElems, ;
     )
 
     // 박스 콜리전
     UPROPERTY(
-        EditAnywhere | EditFixedSize, ({ .Category = "Aggregate Geometry", .DisplayName = "Boxes" }),
+        EditAnywhere /*| EditFixedSize*/, ({ .Category = "Aggregate Geometry", .DisplayName = "Boxes" }),
         TArray<FKBoxElem>, BoxElems, ;
     )
 
     // 캡슐 콜리전
     UPROPERTY(
-        EditAnywhere | EditFixedSize, ({ .Category = "Aggregate Geometry", .DisplayName = "Capsules" }),
+        EditAnywhere /*| EditFixedSize*/, ({ .Category = "Aggregate Geometry", .DisplayName = "Capsules" }),
         TArray<FKSphylElem>, SphylElems, ;
     )
 
     // 컨벡스 콜리전
     UPROPERTY(
-        EditAnywhere | EditFixedSize, ({ .Category = "Aggregate Geometry", .DisplayName = "Convex Elements" }),
+        EditAnywhere /*| EditFixedSize*/, ({ .Category = "Aggregate Geometry", .DisplayName = "Convex Elements" }),
         TArray<FKConvexElem>, ConvexElems, ;
     )
 };

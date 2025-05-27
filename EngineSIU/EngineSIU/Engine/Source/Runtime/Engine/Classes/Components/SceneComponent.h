@@ -46,7 +46,10 @@ public:
     void SetRelativeRotation(const FQuat& InQuat);
     void SetRelativeScale3D(const FVector& InScale) { RelativeScale3D = InScale; }
     void SetRelativeTransform(const FTransform& InTransform);
-    
+
+    void SetRelativeLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation);
+    void SetRelativeLocationAndRotation(const FVector& NewLocation, const FQuat& NewRotation);
+
     FVector GetRelativeLocation() const { return RelativeLocation; }
     FRotator GetRelativeRotation() const { return RelativeRotation; }
     FVector GetRelativeScale3D() const { return RelativeScale3D; }
@@ -58,7 +61,10 @@ public:
     
     void SetWorldScale3D(const FVector& InScale);
     void SetWorldTransform(const FTransform& InTransform);
-    
+
+    void SetWorldLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation);
+    void SetWorldLocationAndRotation(const FVector& NewLocation, const FQuat& NewRotation);
+
     FVector GetComponentLocation() const;
     FRotator GetComponentRotation() const;
     FVector GetComponentScale3D() const;
@@ -74,8 +80,6 @@ public:
 
     bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
     bool MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
-
-    FTransform GetComponentToWorld() const { return ComponentToWorld; }
 
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
@@ -109,6 +113,4 @@ protected:
 private:
     // TODO: 캐싱해서 사용하기
     bool bComponentToWorldUpdated = true;
-
-    FTransform ComponentToWorld;
 };
