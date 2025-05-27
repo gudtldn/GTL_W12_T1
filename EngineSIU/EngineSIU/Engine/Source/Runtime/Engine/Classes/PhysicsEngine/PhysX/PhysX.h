@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 
+struct FSimulationEventCallback;
+
 namespace physx
 {
 class PxPvdTransport;
@@ -27,6 +29,8 @@ public:
     inline static physx::PxDefaultCpuDispatcher* GDispatcher = nullptr;
     inline static physx::PxScene* GScene = nullptr;
     inline static physx::PxMaterial* GMaterial = nullptr; // 기본적인 재질
+
+    inline static FSimulationEventCallback* GSimulationEventCallback = nullptr;
 
 #ifdef _DEBUG
     inline static physx::PxPvd* Pvd = nullptr;
