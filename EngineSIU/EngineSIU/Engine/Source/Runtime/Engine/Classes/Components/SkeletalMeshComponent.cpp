@@ -16,6 +16,15 @@
 #include "PhysicsEngine/PhysicsAsset.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
+#include "PhysicsEngine/BodySetupCore.h"
+
+using namespace physx;
+
+extern PxFoundation* GFoundation;
+extern PxPhysics* GPhysics;
+extern PxDefaultCpuDispatcher* GDispatcher;
+extern PxScene* GScene;
+extern PxMaterial* GMaterial;
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -25,7 +34,8 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     , AnimClass(nullptr)
     , AnimScriptInstance(nullptr)
     , bPlayAnimation(true)
-    ,BonePoseContext(nullptr)
+    , BonePoseContext(nullptr)
+    , bRagDollSimulating(true)
 {
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
@@ -71,6 +81,7 @@ void USkeletalMeshComponent::PhysicsTick()
     if (bSimulatePhysics && Bodies.Num() > 0)
     {
         SyncBodiesToBones();
+        UpdateRagdoll();
     }
 }
 
@@ -177,6 +188,19 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
     CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
     CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
+
+    UPhysicsAsset* PhysAsset = new UPhysicsAsset();
+    SkeletalMeshAsset->SetPhysicsAsset(PhysAsset);
+    // 하드코딩된 값으로 채워야 함.
+
+
+    // Begin Test
+    //if (bRagDollSimulating)
+    //{
+    //    InitializeRagDoll(RefSkeleton);
+    //}
+    InitializeRagDoll(RefSkeleton);
+    // End Test
 }
 
 FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
@@ -404,7 +428,7 @@ void USkeletalMeshComponent::DestroyPhysicsState()
 void USkeletalMeshComponent::ClearPhysicsState()
 {
     // Constraints 먼저 해제 (Bodies를 참조할 수 있으므로)
-    for (FConstraintInstance* Constraint : Constraints)
+    for (UConstraintInstance* Constraint : Constraints)
     {
         if (Constraint)
         {
@@ -425,14 +449,18 @@ void USkeletalMeshComponent::ClearPhysicsState()
     Bodies.Empty();
 }
 
+
 void USkeletalMeshComponent::InstantiatePhysicsAsset()
 {
     if (!(SkeletalMeshAsset && SkeletalMeshAsset->GetPhysicsAsset()))
     {
         return;
     }
-
     UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
+    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+    PopulatePhysicsAssetFromSkeleton(PhysAsset, RefSkeleton);
+
+    /*
 
     // 1. Bodies 생성
     Bodies.Reserve(PhysAsset->BodySetup.Num());
@@ -449,40 +477,53 @@ void USkeletalMeshComponent::InstantiatePhysicsAsset()
             int32 BoneIndex = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->BoneName);
             if (BoneIndex != INDEX_NONE)
             {
-                // BodyTransform = GetBoneTransform(BoneIndex); // 컴포넌트 공간 또는 월드 공간 트랜스폼 가져오기
+                // 컴포넌트 공간 또는 월드 공간 트랜스폼 가져오기
+                BodyTransform = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton().GetRawRefBonePose()[BoneIndex]; 
             }
 
-            // InitBody 호출. UPrimitiveComponent 대신 this (USkeletalMeshComponent*)를 전달하거나,
-            // FBodyInstance가 UActorComponent*를 받도록 수정할 수 있습니다.
-            // 여기서는 UPrimitiveComponent의 파생 클래스라고 가정하고 this 전달.
-            NewBodyInstance->InitBody(this, Setup, BodyTransform, bSimulatePhysics); // bSimulatePhysics는 USMC 멤버
+            NewBodyInstance->InitBody(this, Setup, BodyTransform, bSimulatePhysics);
             Bodies.Add(NewBodyInstance);
         }
     }
 
     // 2. Constraints 생성 (UPhysicsAsset에 ConstraintSetup 배열이 있다고 가정)
-    // if (PhysAsset->ConstraintSetups.Num() > 0) // ConstraintSetups는 UPhysicsAsset의 TArray<UConstraintSetup*> 멤버라고 가정
-    // {
-    //     Constraints.Reserve(PhysAsset->ConstraintSetups.Num());
-    //     for (UConstraintSetup* ConstraintSetup : PhysAsset->ConstraintSetups)
-    //     {
-    //         if (ConstraintSetup)
-    //         {
-    //             // ConstraintSetup에서 필요한 정보 (연결할 두 Body의 인덱스 또는 이름, 조인트 설정 등)를 가져옵니다.
-    //             // 해당 Body 인덱스를 사용하여 Bodies 배열에서 FBodyInstance 포인터를 찾습니다.
-    //             FBodyInstance* Body1 = nullptr;
-    //             FBodyInstance* Body2 = nullptr;
-    //             // ... (ConstraintSetup->BoneName1, ConstraintSetup->BoneName2 등으로 Bodies 배열에서 검색) ...
-    //
-    //             if (Body1 && Body2) // 두 Body가 모두 유효해야 조인트 생성 가능
-    //             {
-    //                 FConstraintInstance* NewConstraintInstance = new FConstraintInstance();
-    //                 // NewConstraintInstance->InitConstraint(this, ConstraintSetup, Body1, Body2);
-    //                 Constraints.Add(NewConstraintInstance);
-    //             }
-    //         }
-    //     }
-    // }
+    if (PhysAsset->ConstraintSetup.Num() > 0) // ConstraintSetups는 UPhysicsAsset의 TArray<UConstraintSetup*> 멤버라고 가정
+    {
+        Constraints.Reserve(PhysAsset->ConstraintSetup.Num());
+        for (UConstraintSetup* Setup : PhysAsset->ConstraintSetup)
+        {
+            if (Setup)
+            {
+                // ConstraintSetup에서 필요한 정보 (연결할 두 Body의 인덱스 또는 이름, 조인트 설정 등)를 가져옵니다.
+                // 해당 Body 인덱스를 사용하여 Bodies 배열에서 FBodyInstance 포인터를 찾습니다.
+                FBodyInstance* Body1 = nullptr;
+                FBodyInstance* Body2 = nullptr;
+
+                if (Setup->ConstraintBone1 != NAME_None && Setup->ConstraintBone2 != NAME_None)
+                {
+                    // ConstraintBone1과 ConstraintBone2는 UBodySetup의 BoneName과 일치하는 이름입니다.
+                    int32 BoneIndex1 = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->ConstraintBone1);
+                    int32 BoneIndex2 = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->ConstraintBone2);
+                    if (BoneIndex1 != INDEX_NONE && BoneIndex2 != INDEX_NONE)
+                    {
+                        // Bodies 배열에서 해당 본 인덱스에 해당하는 FBodyInstance를 찾습니다.
+                        Body1 = Bodies[BoneIndex1];
+                        Body2 = Bodies[BoneIndex2];
+                    }
+                    Setup->ConstraintBone1 = RefSkeleton.RawRefBoneInfo[BoneIndex1].Name;
+                    Setup->ConstraintBone2 = RefSkeleton.RawRefBoneInfo[BoneIndex2].Name;
+                }
+                
+                if (Body1 && Body2) // 두 Body가 모두 유효해야 조인트 생성 가능
+                {
+                    FConstraintInstance* NewConstraintInstance = new FConstraintInstance();
+                    NewConstraintInstance->InitConstraint(Setup, Body1, Body2, this, true);
+                    Constraints.Add(NewConstraintInstance);
+                }
+            }
+        }
+    }
+    */
 }
 
 void USkeletalMeshComponent::SyncBodiesToBones()
@@ -869,4 +910,267 @@ void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
     {
         SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
     }
+}
+
+void USkeletalMeshComponent::InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton)
+{
+    if (InRefSkeleton.GetRawBoneNum() == 0)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMeshAsset->GetPhysicsAsset();
+    PhysicsAsset->BodySetup.Empty();
+
+    for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); BoneIndex++)
+    {
+        FName Name = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex].Name;
+        int ParentIndex = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex].ParentIndex;
+
+        FTransform ParentBoneTransform = FTransform::Identity;
+        if (ParentIndex != -1)
+        {
+            ParentBoneTransform = InRefSkeleton.GetRawRefBonePose()[ParentIndex].GetRelativeTransform(FTransform::Identity);
+        }
+
+        FTransform CurrentTransform = InRefSkeleton.GetRawRefBonePose()[BoneIndex].GetRelativeTransform(ParentBoneTransform);
+        PxVec3 Offset = PxVec3(CurrentTransform.GetLocation().X, CurrentTransform.GetLocation().Y, CurrentTransform.GetLocation().Z);
+        PxVec3 HalfSize = PxVec3(CurrentTransform.GetScale3D().X, CurrentTransform.GetScale3D().Y, CurrentTransform.GetScale3D().Z);
+
+        RagdollBones.Add({ Name, Offset, HalfSize, ParentIndex });
+
+        ///// Begin Test
+        UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(PhysicsAsset);
+        NewBodySetup->AggGeom.SphylElems.AddDefaulted();
+        PhysicsAsset->BodySetup.Add(NewBodySetup);
+    }
+}
+
+void USkeletalMeshComponent::CreateRagDoll(const PxVec3& WorldRoot)
+{
+    for (int i = 0; i < RagdollBones.Num(); ++i)
+    {
+        RagdollBone& bone = RagdollBones[i];
+
+        // 부모의 위치 기준으로 위치 계산
+        PxVec3 parentPos = (bone.parentIndex >= 0) ? RagdollBones[bone.parentIndex].body->getGlobalPose().p : WorldRoot;
+        PxVec3 bonePos = parentPos + bone.offset;
+
+        // 바디 생성
+        PxTransform pose(bonePos);
+        PxRigidDynamic* body = GPhysics->createRigidDynamic(pose);
+        PxShape* shape = GPhysics->createShape(PxCapsuleGeometry(bone.halfSize.x, bone.halfSize.y), *GMaterial);
+        body->attachShape(*shape);
+        PxRigidBodyExt::updateMassAndInertia(*body, 1.0f);
+        GScene->addActor(*body);
+        bone.body = body;
+
+        // 조인트 연결
+        if (bone.parentIndex >= 0)
+        {
+            RagdollBone& parent = RagdollBones[bone.parentIndex];
+
+            PxTransform localFrameParent = PxTransform(parent.body->getGlobalPose().getInverse() * PxTransform(bonePos));
+            PxTransform localFrameChild = PxTransform(PxVec3(0));
+
+            PxD6Joint* joint = PxD6JointCreate(*GPhysics, parent.body, localFrameParent, bone.body, localFrameChild);
+
+            // 각도 제한 설정
+            joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+            joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+            joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+            joint->setTwistLimit(PxJointAngularLimitPair(-PxPi / 4, PxPi / 4));
+            joint->setSwingLimit(PxJointLimitCone(PxPi / 6, PxPi / 6));
+
+            bone.joint = joint;
+        }
+    }
+}
+
+void USkeletalMeshComponent::DestroyRagDoll()
+{
+
+}
+
+void USkeletalMeshComponent::UpdateRagdoll()
+{
+    if (bRagDollSimulating)
+    {
+        //for (auto& bone : RagdollBones)
+        //{
+        //    PxTransform t = bone.body->getGlobalPose();
+        //    PxMat44 m(t);
+        //}
+        for (auto Body : Bodies)
+        {
+            FVector Location = Body->GetWorldTransform().GetLocation();
+            PxTransform t = { Location.X, Location.Y, Location.Z };
+            PxMat44 m(t);
+        }
+        for (auto Constraint : Constraints)
+        {
+            //FVector Location = Constraint->GetWorldTransform().GetLocation();
+            //PxTransform t = { Location.X, Location.Y, Location.Z };
+            //PxMat44 m(t);
+        }
+    }
+}
+
+void USkeletalMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CreatePhysicsState();
+
+    //FVector test = this->GetRelativeTransform().GetLocation();
+    //CreateRagDoll({ test.X, test.Y, test.Z }); // 월드 루트 위치를 기준으로 시작);
+    CreateRagDollFromPhysicsAsset();
+}
+
+void USkeletalMeshComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    DestroyPhysicsState();
+    DestroyRagDoll();
+}
+
+void USkeletalMeshComponent::PopulatePhysicsAssetFromSkeleton(UPhysicsAsset* PhysicsAssetToPopulate, const FReferenceSkeleton& InRefSkeleton)
+{
+    if (!PhysicsAssetToPopulate || InRefSkeleton.GetRawBoneNum() == 0)
+    {
+        return;
+    }
+
+    PhysicsAssetToPopulate->BodySetup.Empty();
+    PhysicsAssetToPopulate->ConstraintSetup.Empty(); // Constraint 설정도 초기화
+
+    // 1. BodySetups 생성
+    for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); ++BoneIndex)
+    {
+        const FMeshBoneInfo& BoneInfo = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex];
+        const FTransform& BoneLocalTransform = InRefSkeleton.GetRawRefBonePose()[BoneIndex]; // 본의 로컬 (부모 상대) 트랜스폼
+
+        UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(PhysicsAssetToPopulate); // Outer를 PhysicsAsset으로
+        NewBodySetup->BoneName = BoneInfo.Name;
+
+        // --- 콜리전 모양 및 크기 설정 (예시: 캡슐) ---
+        FKSphylElem CapsuleElem;
+        CapsuleElem.Center = FVector::ZeroVector; // BodySetup 내의 콜리전은 본에 상대적이므로 보통 (0,0,0) 에서 시작
+        // 실제 오프셋은 BodySetup의 트랜스폼이나, 본 자체의 트랜스폼으로 관리됨.
+        // 또는 본 길이의 절반 지점에 위치시킬 수 있음.
+
+        // 본의 길이와 두께를 기반으로 캡슐 크기 결정 (이 부분은 매우 단순화된 예시)
+        float BoneLength = 50.0f; // 실제로는 자식 본 위치나 특정 로직으로 계산
+        float Radius = 10.0f;    // 적절한 반지름 값
+
+        // 다음 본과의 거리로 길이를 추정하거나, 스켈레톤 데이터에서 직접 가져올 수 있다면 더 좋음
+        if (BoneIndex + 1 < InRefSkeleton.GetRawBoneNum() && InRefSkeleton.GetRawRefBoneInfo()[BoneIndex + 1].ParentIndex == BoneIndex)
+        {
+            BoneLength = FVector::Dist(BoneLocalTransform.GetLocation(), InRefSkeleton.GetRawRefBonePose()[BoneIndex + 1].GetLocation());
+        }
+        CapsuleElem.Length = BoneLength - (2 * Radius); // 실제 캡슐 몸통 길이
+        CapsuleElem.Radius = Radius;
+        // 캡슐 방향 설정: PhysX 캡슐은 기본적으로 X축을 따라 생성. 본의 주축에 맞춰 회전 필요.
+        // 여기서는 Z축을 향한다고 가정하고 회전 (엔진 좌표계에 따라 다름)
+        CapsuleElem.Rotation = FRotator(90.f, 0.f, 0.f); // 예: Z축으로 세우기 위해 X축 90도 회전
+
+        NewBodySetup->AggGeom.SphylElems.Add(CapsuleElem);
+        // --- 콜리전 설정 끝 ---
+
+        PhysicsAssetToPopulate->BodySetup.Add(NewBodySetup);
+    }
+
+    // 2. ConstraintSetups 생성
+    for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); ++BoneIndex)
+    {
+        const FMeshBoneInfo& BoneInfo = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex];
+        if (BoneInfo.ParentIndex != INDEX_NONE) // 루트 본이 아니면 부모와 조인트 생성
+        {
+            const FMeshBoneInfo& ParentBoneInfo = InRefSkeleton.GetRawRefBoneInfo()[BoneInfo.ParentIndex];
+
+            UConstraintSetup* NewConstraintSetup= new UConstraintSetup();
+            NewConstraintSetup->JointName = FName(*(BoneInfo.Name.ToString() + TEXT("_joint_") + ParentBoneInfo.Name.ToString()));
+            NewConstraintSetup->ConstraintBone1 = ParentBoneInfo.Name; // 부모 본
+            NewConstraintSetup->ConstraintBone2 = BoneInfo.Name;   // 자식 본
+
+            // 로컬 프레임 설정: 조인트의 위치와 방향을 각 본의 로컬 공간에서 정의
+            // 예: 부모 본의 끝, 자식 본의 시작 부분에 조인트 위치
+            //    이 값들은 PhysicsAsset 에디터에서 튜닝하는 것이 일반적임.
+            //    여기서는 간단히 Identity로 설정 (실제로는 매우 중요하고 복잡한 부분)
+            NewConstraintSetup->LocalFrame1 = FTransform::Identity; // ParentBone의 로컬 공간에서의 조인트 프레임
+            NewConstraintSetup->LocalFrame2 = FTransform::Identity; // ChildBone의 로컬 공간에서의 조인트 프레임
+
+            // 각도 제한 설정 (예시)
+            NewConstraintSetup->AngularLimits.TwistLimitAngle = 45.f;
+            NewConstraintSetup->AngularLimits.Swing1LimitAngle = 30.f;
+            NewConstraintSetup->AngularLimits.Swing2LimitAngle = 30.f;
+
+            PhysicsAssetToPopulate->ConstraintSetup.Add(NewConstraintSetup);
+        }
+    }
+}
+
+void USkeletalMeshComponent::CreateRagDollFromPhysicsAsset() 
+{
+    if (!(SkeletalMeshAsset && SkeletalMeshAsset->GetPhysicsAsset() && SkeletalMeshAsset->GetSkeleton() && GetWorld()))
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
+    USkeleton* CurrentSkeleton = SkeletalMeshAsset->GetSkeleton();
+
+    ClearPhysicsState(); 
+
+    TMap<FName, FBodyInstance*> BoneNameToBodyInstanceMap;
+    Bodies.Reserve(PhysAsset->BodySetup.Num());
+
+    for (UBodySetup* Setup : PhysAsset->BodySetup)
+    {
+        if (Setup && Setup->BoneName != NAME_None)
+        {
+            FBodyInstance* NewBodyInstance = new FBodyInstance();
+
+            FTransform BoneRefPoseGlobalTransform = FTransform::Identity; // 계산 필요
+            int32 BoneIdx = CurrentSkeleton->FindBoneIndex(Setup->BoneName);
+            if (BoneIdx != INDEX_NONE)
+            {
+                BoneRefPoseGlobalTransform = CurrentSkeleton->GetReferenceSkeleton().GetRawRefBonePose()[BoneIdx];
+            }
+
+
+            // InitBody는 bSimulatePhysics=true로 호출되어야 래그돌처럼 동작 (PxRigidDynamic 생성)
+            NewBodyInstance->InitBody(this, Setup, BoneRefPoseGlobalTransform, true /*bSimulatePhysics*/);
+            Bodies.Add(NewBodyInstance);
+            BoneNameToBodyInstanceMap.Add(Setup->BoneName, NewBodyInstance);
+
+            // 생성된 PxRigidDynamic을 RagdollBones와 유사한 구조에 저장할 수도 있지만,
+            // FBodyInstance가 PxRigidActor를 이미 가지고 있음.
+        }
+    }
+
+    // 3. PhysicsAsset의 ConstraintSetups로부터 FConstraintInstance (및 PxJoint) 생성
+    Constraints.Reserve(PhysAsset->ConstraintSetup.Num());
+    for (const auto CSSetup : PhysAsset->ConstraintSetup)
+    {
+        FBodyInstance* BodyInst1 = *BoneNameToBodyInstanceMap.Find(CSSetup->ConstraintBone1);
+        FBodyInstance* BodyInst2 = *BoneNameToBodyInstanceMap.Find(CSSetup->ConstraintBone2);
+
+        const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+        CSSetup->LocalFrame1 = RefSkeleton.GetRawRefBonePose()[RefSkeleton.FindBoneIndex(CSSetup->ConstraintBone1)];
+        CSSetup->LocalFrame2 = RefSkeleton.GetRawRefBonePose()[RefSkeleton.FindBoneIndex(CSSetup->ConstraintBone2)];
+
+        if (BodyInst1 && BodyInst2)
+        {
+            if (BodyInst1 && BodyInst2 && BodyInst1->RigidActor && BodyInst2->RigidActor)
+            {
+                UConstraintInstance* NewConstraintInstance = new UConstraintInstance();
+                // InitConstraint는 FConstraintSetup을 직접 받도록 수정했었음
+                NewConstraintInstance->InitConstraint(CSSetup, BodyInst1, BodyInst2, this, true /*bSimulatePhysics*/);
+                Constraints.Add(NewConstraintInstance);
+            }
+        }
+    }
+    // SetSimulatePhysics(true); // 컴포넌트 전체에 대한 플래그. 이미 개별 BodyInstance 생성 시 반영.
 }

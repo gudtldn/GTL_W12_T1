@@ -1,4 +1,4 @@
-﻿#include "PhysX.h"
+#include "PhysX.h"
 #include "PxPhysicsAPI.h"
 
 using namespace physx;

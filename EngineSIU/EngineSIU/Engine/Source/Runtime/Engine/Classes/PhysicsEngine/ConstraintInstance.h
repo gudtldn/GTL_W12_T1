@@ -1,34 +1,24 @@
-﻿#pragma once
+#pragma once
 #include "UObject/ObjectMacros.h"
 
+#include "PhysicsEngine/BodyInstance.h"
 
-struct FConstraintInstanceBase
+class USkeletalMeshComponent;
+class UPrimitiveComponent;
+class UConstraintSetup;
+
+class UConstraintInstance : public UConstraintSetup
 {
-    DECLARE_STRUCT(FConstraintInstanceBase)
+    DECLARE_CLASS(UConstraintInstance, UConstraintSetup)
 
 public:
-    FConstraintInstanceBase() = default;
-    virtual ~FConstraintInstanceBase() = default;
+    UConstraintInstance() = default;
+    virtual ~UConstraintInstance() override = default;
 
-    FConstraintInstanceBase(const FConstraintInstanceBase&) = default;
-    FConstraintInstanceBase& operator=(const FConstraintInstanceBase&) = default;
-    FConstraintInstanceBase(FConstraintInstanceBase&&) = default;
-    FConstraintInstanceBase& operator=(FConstraintInstanceBase&&) = default;
-};
-
-
-struct FConstraintInstance : public FConstraintInstanceBase
-{
-    DECLARE_STRUCT(FConstraintInstance, FConstraintInstanceBase)
-
-public:
-    FConstraintInstance() = default;
-    virtual ~FConstraintInstance() override = default;
-
-    FConstraintInstance(const FConstraintInstance&) = default;
-    FConstraintInstance& operator=(const FConstraintInstance&) = default;
-    FConstraintInstance(FConstraintInstance&&) = default;
-    FConstraintInstance& operator=(FConstraintInstance&&) = default;
+    UConstraintInstance(const UConstraintInstance&) = default;
+    UConstraintInstance& operator=(const UConstraintInstance&) = default;
+    UConstraintInstance(UConstraintInstance&&) = default;
+    UConstraintInstance& operator=(UConstraintInstance&&) = default;
 
 public:
     UPROPERTY(
@@ -38,7 +28,15 @@ public:
 
 public:
     // TODO: Implements This
-    void TermConstraint()
-    {
-    }
+    void TermConstraint();
+
+    physx::PxTransform ToPxTransform(const FTransform& UnrealTransform);
+
+    void InitConstraint(const UConstraintSetup* Setup, FBodyInstance* InBody1, FBodyInstance* InBody2, USkeletalMeshComponent* OwnerComp, bool bInSimulatePhysics);
+
+private:
+    FBodyInstance* Body1 = nullptr;
+    FBodyInstance* Body2 = nullptr;
+    physx::PxJoint* Joint = nullptr;
+    bool bInitialized = false; 
 };

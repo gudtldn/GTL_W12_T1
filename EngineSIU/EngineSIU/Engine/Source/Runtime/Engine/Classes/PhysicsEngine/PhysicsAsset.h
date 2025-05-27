@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "ConstraintSetup.h"
 
 class UBodySetup;
-
 
 class UPhysicsAsset : public UObject
 {
@@ -17,5 +17,10 @@ public:
     UPROPERTY(
         EditAnywhere | EditInline,
         TArray<UBodySetup*>, BodySetup, ;
+    )
+
+    UPROPERTY(
+        EditAnywhere | EditInline,
+        TArray<UConstraintSetup*>, ConstraintSetup, ;
     )
 };

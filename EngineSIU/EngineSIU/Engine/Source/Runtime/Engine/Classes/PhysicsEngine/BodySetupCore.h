@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -9,6 +9,10 @@ class UBodySetupCore : public UObject
 
 public:
     UBodySetupCore() = default;
+    UBodySetupCore(const FName& InBoneName)
+        : BoneName(InBoneName)
+    { }
+
     virtual ~UBodySetupCore() override = default;
 
 public:

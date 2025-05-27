@@ -1,9 +1,17 @@
-﻿#pragma once
+// BodyInstance.h
+
+#pragma once
 #include "BodyInstanceCore.h"
+
+#include "PxPhysicsAPI.h" 
 
 class UBodySetup;
 class UPrimitiveComponent;
 
+struct FKSphereElem; 
+struct FKBoxElem;
+struct FKSphylElem;
+struct FKConvexElem;
 
 struct FBodyInstance : FBodyInstanceCore
 {
@@ -42,9 +50,18 @@ public:
     void SetUserData(void* InUserData);
     void* GetUserData() const;
 
+    physx::PxRigidActor* RigidActor; 
+    void* UserData;
+
+    bool bIsSimulatingPhysics;
+
+    void CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, physx::PxRigidActor* OutActor); 
+
+    physx::PxShape* CreateShapeFromSphere(const FKSphereElem& SphereElem, const physx::PxMaterial& Material) const; 
+    physx::PxShape* CreateShapeFromBox(const FKBoxElem& BoxElem, const physx::PxMaterial& Material) const; 
+    physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const; 
+
 private:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
-
-    struct FBodyInstancePImpl;
-    std::unique_ptr<FBodyInstancePImpl> PImpl;
 };

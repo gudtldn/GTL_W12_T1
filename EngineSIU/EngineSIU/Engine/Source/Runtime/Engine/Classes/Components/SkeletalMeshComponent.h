@@ -6,13 +6,27 @@
 #include "Template/SubclassOf.h"
 #include "Animation/AnimNodeBase.h"
 
-struct FConstraintInstance;
+#include "PxPhysicsAPI.h"
+
+struct UConstraintInstance;
 class UAnimSequence;
 class USkeletalMesh;
 struct FAnimNotifyEvent;
 class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
+class UPhysicsAsset;
+
+struct RagdollBone
+{
+    FName name;
+    physx::PxVec3 offset;                // 부모로부터의 위치
+    physx::PxVec3 halfSize;              // Capsule or box 크기
+    int parentIndex;              // -1이면 루트
+    physx::PxRigidDynamic* body = nullptr;
+    physx::PxJoint* joint = nullptr;
+};
+
 
 enum class EAnimationMode : uint8
 {
@@ -129,14 +143,16 @@ public:
     TArray<FBodyInstance*> Bodies;
 
     /** Array of FConstraintInstance structs, storing per-instance state about each constraint. */
-    TArray<FConstraintInstance*> Constraints;
+    TArray<UConstraintInstance*> Constraints;
 
     // 물리 상태 생성/파괴
+    //virtual bool ShouldCreatePhysicsState() const;
     virtual void CreatePhysicsState() override;
     virtual void DestroyPhysicsState() override;
 
 protected:
     void ClearPhysicsState();
+
     void InstantiatePhysicsAsset();
 
     void SyncBodiesToBones();
@@ -166,4 +182,29 @@ public:
     UClass* GetAnimClass();
     
     void SetAnimInstanceClass(class UClass* NewClass);
+
+private:
+    UPROPERTY(
+        EditAnywhere | LuaReadOnly, ({ .Category = "RagDoll" }),
+        bool, bRagDollSimulating, ;
+    )
+
+    TArray<RagdollBone> RagdollBones;
+
+public:
+    void SetRagDollSimulating(bool bInRagDollSimulating){ bRagDollSimulating = bInRagDollSimulating; }
+    bool IsRagDollSimulating() const { return bRagDollSimulating; }
+
+    void InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton);
+    void CreateRagDoll(const physx::PxVec3& WorldRoot);
+    void DestroyRagDoll();
+
+    void UpdateRagdoll();
+
+protected:
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+    void PopulatePhysicsAssetFromSkeleton(UPhysicsAsset* PhysicsAssetToPopulate, const FReferenceSkeleton& InRefSkeleton);
+    void CreateRagDollFromPhysicsAsset();
 };

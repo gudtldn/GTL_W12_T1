@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AggregateGeom.h"
 #include "BodySetupCore.h"
 
