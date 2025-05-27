@@ -1,6 +1,18 @@
 ﻿#pragma once
 #include "BodyInstanceCore.h"
 
+struct FKConvexElem;
+struct FKSphylElem;
+struct FKBoxElem;
+struct FKSphereElem;
+
+namespace physx
+{
+class PxShape;
+class PxMaterial;
+class PxRigidActor;
+}
+
 class UBodySetup;
 class UPrimitiveComponent;
 
@@ -45,6 +57,19 @@ public:
 private:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
 
-    struct FBodyInstancePImpl;
-    std::unique_ptr<FBodyInstancePImpl> PImpl;
+private:
+    // UBodySetup의 FKAggregateGeom 정보를 바탕으로 PxShape들을 생성하고 PxRigidActor에 붙입니다.
+    void CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, physx::PxRigidActor* OutActor);
+
+    physx::PxShape* CreateShapeFromSphere(const FKSphereElem& SphereElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromBox(const FKBoxElem& BoxElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const;
+
+
+    physx::PxRigidActor* RigidActor;
+    void* UserData;
+
+    // 현재 물리 시뮬레이션 여부
+    bool bIsSimulatingPhysics;
 };
