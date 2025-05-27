@@ -1,5 +1,6 @@
-﻿#include "PhysX.h"
+#include "PhysX.h"
 #include "PxPhysicsAPI.h"
+#include "Actors/CarActor.h"
 
 using namespace physx;
 
@@ -8,6 +9,7 @@ PxPhysics* GPhysics = nullptr;
 PxDefaultCpuDispatcher* GDispatcher = nullptr;
 PxScene* GScene = nullptr;
 PxMaterial* GMaterial = nullptr; // 기본적인 재질
+PxCooking* GCooking = nullptr;
 
 #ifdef _DEBUG
 namespace
@@ -49,6 +51,22 @@ void FPhysX::Initialize()
     SceneDesc.cpuDispatcher = GDispatcher;
     SceneDesc.filterShader = PxDefaultSimulationFilterShader;
     GScene = GPhysics->createScene(SceneDesc);
+
+    if (GPhysics) // GPhysics가 성공적으로 생성되었는지 확인
+    {
+        PxCookingParams CookingParams(GPhysics->getTolerancesScale());
+        // CookingParams의 여러 플래그를 설정하여 쿠킹 과정을 제어할 수 있습니다.
+        // 예: CookingParams.meshWeldTolerance = 0.001f;
+        // 예: CookingParams.meshPreprocessParams = PxMeshPreprocessingFlag::eWELD_VERTICES;
+        // 기본값으로도 대부분 잘 동작합니다.
+        GCooking = PxCreateCooking(PX_PHYSICS_VERSION, *GFoundation, CookingParams);
+
+        // 차량 SDK 초기화 호출
+        if (!ACarActor::InitializeVehicleSDKGlobal(*GPhysics))
+        {
+            return;
+        }
+    }
 
 #ifdef _DEBUG
     // PVD Scene 설정
@@ -123,6 +141,8 @@ void FPhysX::Release()
         GPhysics->release();
         GPhysics = nullptr;
     }
+
+    ACarActor::ShutdownVehicleSDKGlobal();
 
 #ifdef _DEBUG
     if (Pvd)

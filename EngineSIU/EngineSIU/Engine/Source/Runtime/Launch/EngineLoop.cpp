@@ -171,7 +171,7 @@ void FEngineLoop::Tick()
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
-        FPhysX::Tick(DeltaTime);
+        //FPhysX::Tick(DeltaTime);
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();
