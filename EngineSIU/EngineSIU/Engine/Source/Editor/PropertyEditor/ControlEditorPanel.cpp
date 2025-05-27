@@ -5,6 +5,7 @@
 #include "Actors/Player.h"
 #include "Actors/LightActor.h"
 #include "Actors/FireballActor.h"
+#include "Actors/CarActor.h"
 
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
@@ -406,6 +407,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "TriggerBox", .OBJ = OBJ_TRIGGERBOX},
             {.Label = "SkeletalMeshActor", .OBJ = OBJ_SKELETALMESH},
             {.Label = "SequencerPlayer", .OBJ = OBJ_SEQUENCERPLAYER},
+            {.Label = "RigidCar", .OBJ = OBJ_RIGIDCAR},
         };
 
         for (const auto& primitive : primitives)
@@ -553,10 +555,17 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     }
                     break;
                 case OBJ_SEQUENCERPLAYER:
-                {
-                    SpawnedActor = World->SpawnActor<ASequencerPlayer>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SEQUENCERPLAYER"));
-                }
+                    {
+                        SpawnedActor = World->SpawnActor<ASequencerPlayer>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_SEQUENCERPLAYER"));
+                    }
+                    break;
+                case OBJ_RIGIDCAR:
+                    {
+                        SpawnedActor = World->SpawnActor<ACarActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_RIGIDCAR"));
+                    }
+                    break;
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:
