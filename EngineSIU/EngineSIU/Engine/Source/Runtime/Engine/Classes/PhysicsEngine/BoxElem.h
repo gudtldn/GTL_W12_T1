@@ -51,7 +51,7 @@ public:
 
     /** Extent of the box along the y-axis */
     UPROPERTY(
-        EditAnywhere, ({ .Category = "Box", .DisplayName = "X Extent", .ToolTip = "Extent of the box along the y-axis" }),
+        EditAnywhere, ({ .Category = "Box", .DisplayName = "X Extent", .ToolTip = "Extent of the box along the x-axis" }),
         float, X, ;
     )
 

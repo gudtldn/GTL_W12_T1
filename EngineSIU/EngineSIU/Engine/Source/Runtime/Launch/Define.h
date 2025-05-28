@@ -474,21 +474,19 @@ struct FViewModeConstants
 
 struct FDOFConstants
 {
-    float FocusDistance;        // 초점 거리
-    float BlurStrength;         // 블러 강도  
-    float FocusRange;           // 초점 범위
-    float NearPlane;            // Near plane
+    float FocusDistance;        // 초점 거리 (world units)
+    float BlurStrength;         // 블러 강도
+    float NearPlane;            // 카메라 near plane
+    float FarPlane;             // 카메라 far plane
 
-    float FarPlane;             // Far plane
     float FocalLength;          // 렌즈 초점거리 (mm)
-    float Aperture;             // F-Stop
+    float Aperture;             // F-Stop 값
     float MaxBlurRadius;        // 최대 블러 반지름
+    float _padding;             // 16바이트 정렬용
 
-    FVector2D TextureSize;
-    FVector2D InvTextureSize; // 1/텍스처크기 (1/960, 1/540)
-
+    FVector2D InvTextureSize;   // 1/텍스처크기 (1/960, 1/540)
+    FVector2D _padding2;        // 16바이트 정렬용
 };
-
 struct FSubMeshConstants
 {
     float bIsSelectedSubMesh;

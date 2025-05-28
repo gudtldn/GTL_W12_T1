@@ -1,34 +1,37 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 // ReSharper disable CppClangTidyCppcoreguidelinesProTypeStaticCastDowncast
 #include "BodyInstance.h"
+#include "PhysX/PhysX.h"
 
 #include "BodySetup.h"
 #include "Components/PrimitiveComponent.h"
 #include "extensions/PxRigidBodyExt.h"
-#include <iomanip> 
 
 using namespace physx;
 
-extern PxFoundation* GFoundation;
-extern PxPhysics* GPhysics;
-extern PxDefaultCpuDispatcher* GDispatcher;
-extern PxScene* GScene;
-extern PxMaterial* GMaterial;
+
+struct FKSphereElem;
+struct FKBoxElem;
+struct FKSphylElem;
+struct FKConvexElem;
 
 
 void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRigidActor* OutActor)
 {
-    if (!(BodySetupRef && RigidActor && GMaterial))
+    if (!(BodySetupRef && RigidActor && FPhysX::GMaterial))
     {
         return;
     }
 
+    PxFilterData ShapeFilterData = BodySetupRef->CreateFilterData();
     const FKAggregateGeom& AggGeom = BodySetupRef->AggGeom;
 
     for (const FKSphereElem& SphereElem : AggGeom.SphereElems)
     {
-        if (PxShape* Shape = CreateShapeFromSphere(SphereElem, *GMaterial))
+        if (PxShape* Shape = CreateShapeFromSphere(SphereElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -36,8 +39,10 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
 
     for (const FKBoxElem& BoxElem : AggGeom.BoxElems)
     {
-        if (PxShape* Shape = CreateShapeFromBox(BoxElem, *GMaterial))
+        if (PxShape* Shape = CreateShapeFromBox(BoxElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -45,8 +50,11 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
 
     for (const FKSphylElem& SphylElem : AggGeom.SphylElems)
     {
-        if (PxShape* Shape = CreateShapeFromSphyl(SphylElem, *GMaterial))
+        if (PxShape* Shape = CreateShapeFromSphyl(SphylElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
+
             Shape->setContactOffset(1.0f);
             Shape->setRestOffset(-0.1f);
 
@@ -57,8 +65,10 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
 
     for (const FKConvexElem& ConvexElem : AggGeom.ConvexElems)
     {
-        if (PxShape* Shape = CreateShapeFromConvex(ConvexElem, *GMaterial))
+        if (PxShape* Shape = CreateShapeFromConvex(ConvexElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -67,7 +77,7 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
 
 PxShape* FBodyInstance::CreateShapeFromSphere(const FKSphereElem& SphereElem, const PxMaterial& Material) const
 {
-    PxShape* Shape = GPhysics->createShape(
+    PxShape* Shape = FPhysX::GPhysics->createShape(
         PxSphereGeometry(SphereElem.Radius), Material, true, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE
     );
 
@@ -82,7 +92,7 @@ PxShape* FBodyInstance::CreateShapeFromSphere(const FKSphereElem& SphereElem, co
 
 PxShape* FBodyInstance::CreateShapeFromBox(const FKBoxElem& BoxElem, const PxMaterial& Material) const
 {
-    PxShape* Shape = GPhysics->createShape(
+    PxShape* Shape = FPhysX::GPhysics->createShape(
         PxBoxGeometry(BoxElem.X, BoxElem.Y, BoxElem.Z), // 박스 지오메트리 (Half-Extents)
         Material,
         true,
@@ -104,6 +114,7 @@ PxShape* FBodyInstance::CreateShapeFromBox(const FKBoxElem& BoxElem, const PxMat
 
 PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const PxMaterial& Material) const
 {
+
     // OwnerComponent와 BodySetup에서 본 이름을 가져와 로그에 포함하면 디버깅에 매우 유용합니다.
     // FName BoneName = (OwnerComponent && OwnerComponent->GetBodySetup() == BodySetupRef) ? AssociatedBoneName : TEXT("UnknownBone");
     // 위 방법은 FBodyInstance가 UBodySetup*나 BoneName을 직접 알 수 있도록 수정해야 가능.
@@ -118,7 +129,7 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
         return nullptr;
     }
 
-    PxShape* Shape = GPhysics->createShape(
+    PxShape* Shape = FPhysX::GPhysics->createShape(
         PxCapsuleGeometry(Radius, HalfHeight),
         Material,
         true,
@@ -146,7 +157,6 @@ PxShape* FBodyInstance::CreateShapeFromConvex(const FKConvexElem& ConvexElem, co
 FBodyInstance::FBodyInstance()
     : OwnerComponent(nullptr)
     , RigidActor(nullptr)
-    , UserData(nullptr)
     , bIsSimulatingPhysics(false)
 {
 }
@@ -156,26 +166,12 @@ FBodyInstance::~FBodyInstance()
     TermBody();
 }
 
-FBodyInstance::FBodyInstance(FBodyInstance&& Other) noexcept
-    : OwnerComponent(Other.OwnerComponent)
-{
-    Other.OwnerComponent = nullptr;
-}
-
-FBodyInstance& FBodyInstance::operator=(FBodyInstance&& Other) noexcept
-{
-    if (this != &Other)
-    {
-        OwnerComponent = Other.OwnerComponent;
-
-        Other.OwnerComponent = nullptr;
-    }
-    return *this;
-}
+FBodyInstance::FBodyInstance(FBodyInstance&& Other) noexcept = default;
+FBodyInstance& FBodyInstance::operator=(FBodyInstance&& Other) noexcept = default;
 
 void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodySetup* InBodySetup, const FTransform& InTransform, bool bInSimulatePhysics)
 {
-    if (!(GPhysics && GScene && GMaterial && InBodySetup && InOwnerComponent))
+    if (!(FPhysX::GPhysics && FPhysX::GScene && FPhysX::GMaterial && InBodySetup && InOwnerComponent))
     {
         return;
     }
@@ -183,7 +179,7 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
     if (RigidActor)
     {
         TermBody();
-        RigidActor = nullptr;
+        RigidActor = nullptr; // 명시적 초기화
     }
 
     OwnerComponent = InOwnerComponent;
@@ -201,12 +197,11 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
 
     if (bIsSimulatingPhysics)
     {
-        RigidActor = GPhysics->createRigidDynamic(PxPose);
-
+        RigidActor = FPhysX::GPhysics->createRigidDynamic(PxPose);
     }
     else
     {
-        RigidActor = GPhysics->createRigidStatic(PxPose);
+        RigidActor = FPhysX::GPhysics->createRigidStatic(PxPose);
     }
 
     if (!RigidActor)
@@ -214,6 +209,7 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
         return;
     }
 
+    // userData에 FBodyInstance* this를 저장 (PhysX 콜백 등에서 다시 FBodyInstance를 얻기 위함)
     RigidActor->userData = this;
 
     CreateShapesFromAggGeom(InBodySetup, RigidActor);
@@ -245,29 +241,27 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
         SetAngularVelocity(FVector(0, 0, 0), false);
     }
 
-    GScene->addActor(*RigidActor);
+    FPhysX::GScene->addActor(*RigidActor);
 }
 
 void FBodyInstance::TermBody()
 {
     if (RigidActor)
     {
-        if (GScene)
+        if (FPhysX::GScene)
         {
-            GScene->removeActor(*RigidActor);
+            FPhysX::GScene->removeActor(*RigidActor);
         }
         RigidActor->release();
         RigidActor = nullptr;
     }
-    // OwnerComponent는 TermBody에서 null로 만들지 않음. InitBody에서 새로 설정.
-    // 또는 FBodyInstance 소멸 시 OwnerComponent = nullptr; 처리.
 }
 
 void FBodyInstance::SyncPhysXToComponent()
 {
     if (RigidActor && OwnerComponent && bIsSimulatingPhysics) // 물리 시뮬레이션 중일 때만 동기화
     {
-        PxSceneReadLock ScopedReadLock{*GScene};
+        PxSceneReadLock ScopedReadLock{*FPhysX::GScene};
 
         const PxTransform PxPose = RigidActor->getGlobalPose();
         const FVector NewLocation(PxPose.p.x, PxPose.p.y, PxPose.p.z);
@@ -281,7 +275,7 @@ void FBodyInstance::SyncComponentToPhysX()
 {
     if (RigidActor && OwnerComponent && bIsSimulatingPhysics)
     {
-        PxSceneWriteLock ScopedWriteLock{*GScene};
+        PxSceneWriteLock ScopedWriteLock{*FPhysX::GScene};
 
         const FTransform NewTransform = OwnerComponent->GetComponentTransform();
         const FVector NewLocation = NewTransform.GetLocation();
@@ -417,7 +411,7 @@ void FBodyInstance::SetSimulatePhysics(bool bSimulate)
             {
                 // 물리 시뮬레이션을 끄면 Kinematic으로 만들거나 Gravity를 끌 수 있음
                 // 여기서는 간단히 Actor flag를 조절한다고 가정 (예시)
-                // static_cast<physx::PxRigidDynamic*>(->RigidActor)->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, !bSimulate);
+                // static_cast<physx::PxRigidDynamic*>(RigidActor)->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, !bSimulate);
             }
             // UE_LOG: SetSimulatePhysics 호출됨, 현재 상태: %s", bSimulate ? "On" : "Off");
         }
@@ -427,14 +421,4 @@ void FBodyInstance::SetSimulatePhysics(bool bSimulate)
 bool FBodyInstance::IsSimulatingPhysics() const
 {
     return bIsSimulatingPhysics;
-}
-
-void FBodyInstance::SetUserData(void* InUserData)
-{
-    UserData = InUserData;
-}
-
-void* FBodyInstance::GetUserData() const
-{
-    return UserData;
 }

@@ -45,21 +45,20 @@ public:
     void SetSimulatePhysics(bool bSimulate);
     bool IsSimulatingPhysics() const;
 
-    void SetUserData(void* InUserData);
-    void* GetUserData() const;
-
-    physx::PxRigidActor* RigidActor; 
-    void* UserData;
-
-    bool bIsSimulatingPhysics;
-
-    void CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, physx::PxRigidActor* OutActor); 
-
-    physx::PxShape* CreateShapeFromSphere(const FKSphereElem& SphereElem, const physx::PxMaterial& Material) const; 
-    physx::PxShape* CreateShapeFromBox(const FKBoxElem& BoxElem, const physx::PxMaterial& Material) const; 
-    physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
-    physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const; 
-
 private:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
+
+private:
+    // UBodySetup의 FKAggregateGeom 정보를 바탕으로 PxShape들을 생성하고 PxRigidActor에 붙입니다.
+    void CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, physx::PxRigidActor* OutActor);
+
+    physx::PxShape* CreateShapeFromSphere(const FKSphereElem& SphereElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromBox(const FKBoxElem& BoxElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
+    physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const;
+
+    physx::PxRigidActor* RigidActor;
+
+    // 현재 물리 시뮬레이션 여부
+    bool bIsSimulatingPhysics;
 };

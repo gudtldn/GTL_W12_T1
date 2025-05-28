@@ -344,11 +344,6 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         }
 
         ImGui::SetNextItemWidth(150.f);
-        if (ImGui::DragFloat("##FocusRange", &DOFConstant.FocusRange, 0.01f, 0.0f, 1.0f, "Focus Range: %.2f"))
-        {
-        }
-
-        ImGui::SetNextItemWidth(150.f);
         if (ImGui::DragFloat("##MaxBlurRadius", &DOFConstant.MaxBlurRadius, 0.1f, 0.0f, 50.0f, "Max Blur Radius: %.1f"))
         {
         }
