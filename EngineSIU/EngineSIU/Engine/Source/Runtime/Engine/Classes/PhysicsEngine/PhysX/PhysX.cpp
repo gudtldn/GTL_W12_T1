@@ -17,14 +17,14 @@ static PxFilterFlags ContactReportFilterShader(
 
     // 1. 블로킹 충돌 여부 결정
     //    (obj0의 타입이 obj1의 블로킹 마스크에 포함되고, obj1의 타입이 obj0의 블로킹 마스크에 포함되는지)
-    bool bBlock = (FilterData0.word0 & FilterData1.word1) && (FilterData1.word0 & FilterData0.word1);
+    bool bBlock = ((FilterData0.word0 & FilterData1.word1) != 0) && ((FilterData1.word0 & FilterData0.word1) != 0);
 
     if (bBlock)
     {
         PairFlags = PxPairFlag::eCONTACT_DEFAULT; // 물리적 반작용
 
         // 2. onContact 이벤트 발생 여부 결정 (word2를 터치 마스크로 사용한다고 가정)
-        bool bNotifyTouch = (FilterData0.word0 & FilterData1.word2) && (FilterData1.word0 & FilterData0.word2);
+        bool bNotifyTouch = ((FilterData0.word0 & FilterData1.word2) != 0) && ((FilterData1.word0 & FilterData0.word2) != 0);
         if (bNotifyTouch)
         {
             PairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
