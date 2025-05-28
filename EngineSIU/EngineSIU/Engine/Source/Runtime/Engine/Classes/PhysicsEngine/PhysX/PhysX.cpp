@@ -147,7 +147,14 @@ void FPhysX::Initialize()
     GMaterial = GPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
     // PhysX Cooking 라이브러리 초기화 (필요시)
-    PxInitExtensions(*GPhysics, Pvd);
+    PxInitExtensions(
+        *GPhysics,
+#ifdef _DEBUG
+        Pvd
+#else
+        nullptr
+#endif
+    );
 }
 
 void FPhysX::Tick(float DeltaTime)
