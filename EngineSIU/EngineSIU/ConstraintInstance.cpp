@@ -27,11 +27,27 @@ void FConstraintInstance::InitConstraint(
 
     PxRigidActor* PActor1 = Body1->RigidActor;
     PxRigidActor* PActor2 = Body2->RigidActor;
-    PxTransform PLocalFrame1 = Setup->LocalFrame1.getNormalized();
-    PxTransform PLocalFrame2 = Setup->LocalFrame2.getNormalized();
+
+    PxTransform parentActorWorldPose = PActor1->getGlobalPose();
+    PxTransform childActorWorldPose = PActor2->getGlobalPose();
+
+    PxQuat q_AxisCorrection = PxQuat(PxMat33(
+        PxVec3(0.0f, 0.0f, 1.0f), // new X-axis column
+        PxVec3(1.0f, 0.0f, 0.0f), // new Y-axis column
+        PxVec3(0.0f, 1.0f, 0.0f)  // new Z-axis column
+    ));
+    q_AxisCorrection.normalize(); 
+    PxTransform PLocalFrame_Child(PxVec3(0.0f), q_AxisCorrection);
+
+    PxTransform childJointFrameInWorld = childActorWorldPose * PLocalFrame_Child;
+
+    PxTransform PLocalFrame_Parent = parentActorWorldPose.getInverse() * childJointFrameInWorld;
+
     PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
-        PActor2, PLocalFrame2,
-        PActor1, PLocalFrame1
+        PActor2,            // actor0 = 자식 (PActor2)
+        PLocalFrame_Child,  // localFrame0 = 수정된 자식 기준 프레임
+        PActor1,            // actor1 = 부모 (PActor1)
+        PLocalFrame_Parent  // localFrame1 = 수정된 부모 기준 프레임
     );
 
     if (!D6Joint)

@@ -1048,6 +1048,7 @@ void USkeletalMeshComponent::CreateRagDollFromPhysicsAsset()
         }
     }
 }
+
 void USkeletalMeshComponent::CalculateElement(UBodySetup* InBodySetup, int32 BoneIndex)
 {
     if (!InBodySetup)
