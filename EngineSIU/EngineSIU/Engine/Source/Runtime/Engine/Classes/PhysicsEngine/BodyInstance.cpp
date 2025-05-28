@@ -47,7 +47,7 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
     {
         if (PxShape* Shape = CreateShapeFromSphyl(SphylElem, *GMaterial))
         {
-            Shape->setContactOffset(0.02f);
+            Shape->setContactOffset(1.0f);
             Shape->setRestOffset(-0.1f);
 
             OutActor->attachShape(*Shape);
@@ -230,17 +230,19 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
                 MassToUse = InBodySetup->Mass;
             }
         }
-
         if (MassToUse > 0.0f)
         {
             PxRigidBodyExt::setMassAndUpdateInertia(*DynActor, MassToUse);
         }
-        DynActor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true); // 코스트가 높음.
-        DynActor->setMaxDepenetrationVelocity(5.0f);
+        DynActor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false); // 코스트가 높음.
+        DynActor->setMaxDepenetrationVelocity(8.0f);
         DynActor->setLinearDamping(InBodySetup->LinearDamping);
         DynActor->setAngularDamping(InBodySetup->AngularDamping);
         DynActor->setMaxLinearVelocity(30.f);
         DynActor->setMaxAngularVelocity(30.f);
+        DynActor->setSolverIterationCounts(12, 1);
+        SetLinearVelocity(FVector(0, 0, 0), false);
+        SetAngularVelocity(FVector(0, 0, 0), false);
     }
 
     GScene->addActor(*RigidActor);

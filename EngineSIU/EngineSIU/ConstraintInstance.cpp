@@ -21,14 +21,14 @@ void FConstraintInstance::InitConstraint(
         return;
     }
 
-    Body1 = InBody1;
+    Body1 = InBody1; 
     Body2 = InBody2;
     JointName = Setup->JointName;
 
     PxRigidActor* PActor1 = Body1->RigidActor;
     PxRigidActor* PActor2 = Body2->RigidActor;
-    PxTransform PLocalFrame1 = Setup->LocalFrame1;
-    PxTransform PLocalFrame2 = Setup->LocalFrame2;
+    PxTransform PLocalFrame1 = Setup->LocalFrame1.getNormalized();
+    PxTransform PLocalFrame2 = Setup->LocalFrame2.getNormalized();
     PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
         PActor2, PLocalFrame2,
         PActor1, PLocalFrame1
@@ -44,27 +44,20 @@ void FConstraintInstance::InitConstraint(
     D6Joint->setMotion(PxD6Axis::eY, PxD6Motion::eLOCKED);
     D6Joint->setMotion(PxD6Axis::eZ, PxD6Motion::eLOCKED);
 
-    D6Joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED); // Twist (Y-Z 평면 회전)
-    D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED); // Swing1 (X-Z 평면 회전)
-    D6Joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED); // Swing2 (X-Y 평면 회전)
+    D6Joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+    D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+    D6Joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+
+    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
 
     float TwistLimitRad = FMath::DegreesToRadians(Setup->AngularLimits.TwistLimitAngle);
-    D6Joint->setTwistLimit(PxJointAngularLimitPair(-TwistLimitRad, TwistLimitRad));
+    D6Joint->setTwistLimit(PxJointAngularLimitPair(-TwistLimitRad, TwistLimitRad, PxSpring(0, 0)));;
 
     float Swing1LimitRad = FMath::DegreesToRadians(Setup->AngularLimits.Swing1LimitAngle);
     float Swing2LimitRad = FMath::DegreesToRadians(Setup->AngularLimits.Swing2LimitAngle);
-    D6Joint->setSwingLimit(PxJointLimitCone(Swing1LimitRad, Swing2LimitRad));
-
-    //if (Setup->bDisableCollisionBetweenConstrainedBodies)
-    //{
-    //    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
-    //}
-    //else
-    //{
-    //    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, true);
-    //}
-    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
-    D6Joint->setProjectionLinearTolerance(0.05f);
+    D6Joint->setSwingLimit(PxJointLimitCone(Swing1LimitRad, Swing2LimitRad, PxSpring(0, 0)));
+    
+    D6Joint->setProjectionLinearTolerance(0.5f);
     D6Joint->setProjectionAngularTolerance(FMath::DegreesToRadians(1.0f));
     D6Joint->setConstraintFlag(PxConstraintFlag::ePROJECTION, true);
 

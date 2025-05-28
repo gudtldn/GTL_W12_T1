@@ -11,7 +11,7 @@ struct FAngularConstraintLimit
 
 public:
 
-    float TwistLimitAngle = 45.f;
+    float TwistLimitAngle = 45.f; //x
     float Swing1LimitAngle = 45.f;
     float Swing2LimitAngle = 45.f;
 };
