@@ -24,12 +24,15 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
         return;
     }
 
+    PxFilterData ShapeFilterData = BodySetupRef->CreateFilterData();
     const FKAggregateGeom& AggGeom = BodySetupRef->AggGeom;
 
     for (const FKSphereElem& SphereElem : AggGeom.SphereElems)
     {
         if (PxShape* Shape = CreateShapeFromSphere(SphereElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -39,6 +42,8 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
     {
         if (PxShape* Shape = CreateShapeFromBox(BoxElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -48,6 +53,8 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
     {
         if (PxShape* Shape = CreateShapeFromSphyl(SphylElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -57,6 +64,8 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
     {
         if (PxShape* Shape = CreateShapeFromConvex(ConvexElem, *FPhysX::GMaterial))
         {
+            Shape->setSimulationFilterData(ShapeFilterData);
+            Shape->setQueryFilterData(ShapeFilterData);
             OutActor->attachShape(*Shape);
             Shape->release();
         }

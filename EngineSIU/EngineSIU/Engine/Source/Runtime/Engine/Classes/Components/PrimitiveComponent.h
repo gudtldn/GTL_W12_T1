@@ -34,9 +34,19 @@ public:
 
     FBoundingBox AABB;
 
+    bool GetGenerateHitEvents() const { return bGenerateHitEvents; }
     bool GetGenerateOverlapEvents() const { return bGenerateOverlapEvents; }
-    
-    bool bGenerateOverlapEvents = true;
+
+    UPROPERTY(
+        EditAnywhere,
+        bool, bGenerateOverlapEvents, = true;
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        bool, bGenerateHitEvents, = true;
+    )
+
     bool bBlockComponent = true;
 
     FComponentHitSignature OnComponentHit;
