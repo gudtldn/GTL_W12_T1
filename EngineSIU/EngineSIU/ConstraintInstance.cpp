@@ -9,17 +9,6 @@ using namespace physx;
 
 extern PxPhysics* GPhysics;
 
-PxTransform FConstraintInstance::ToPxTransform(const FTransform& UnrealTransform)
-{
-    const FVector Position = UnrealTransform.GetLocation();
-    FQuat Quaternion = UnrealTransform.GetRotation();
-    Quaternion.Normalize(); 
-    return PxTransform(
-        PxVec3(Position.X, Position.Y, Position.Z),
-        PxQuat(Quaternion.X, Quaternion.Y, Quaternion.Z, Quaternion.W) 
-    );
-}
-
 void FConstraintInstance::InitConstraint(
     const UConstraintSetup* Setup,
     FBodyInstance* InBody1,
@@ -38,8 +27,8 @@ void FConstraintInstance::InitConstraint(
 
     PxRigidActor* PActor1 = Body1->RigidActor;
     PxRigidActor* PActor2 = Body2->RigidActor;
-    PxTransform PLocalFrame1 = ToPxTransform(Setup->LocalFrame1);
-    PxTransform PLocalFrame2 = ToPxTransform(Setup->LocalFrame2);
+    PxTransform PLocalFrame1 = Setup->LocalFrame1;
+    PxTransform PLocalFrame2 = Setup->LocalFrame2;
     PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
         PActor1, PLocalFrame1,
         PActor2, PLocalFrame2

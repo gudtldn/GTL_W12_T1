@@ -196,7 +196,6 @@ public:
     bool IsRagDollSimulating() const { return bRagDollSimulating; }
 
     void InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton);
-    //void CreateRagDoll(const physx::PxVec3& WorldRoot);
     void DestroyRagDoll();
 
     void UpdateRagdoll();
@@ -218,6 +217,8 @@ private:
     float CalculatedRadius = 0.5f; //DefaultRadius
     float CalculatedCylinderLength = 2.f; // 원통 부분의 길이 (DefaultBoneLength)
 
-    void CalculateElement(UBodySetup* InBodySetup, const FReferenceSkeleton& InRefSkeleton, int32 BoneIndex);
+    void CalculateElement(UBodySetup* InBodySetup, int32 BoneIndex);
+
+    physx::PxTransform ToPxTransform(const FTransform& UnrealTransform);
 
 };

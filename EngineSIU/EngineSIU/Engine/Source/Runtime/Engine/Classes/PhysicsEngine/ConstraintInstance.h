@@ -32,8 +32,6 @@ public:
     // TODO: Implements This
     void TermConstraint();
 
-    physx::PxTransform ToPxTransform(const FTransform& UnrealTransform);
-
     void InitConstraint(const UConstraintSetup* Setup, FBodyInstance* InBody1, FBodyInstance* InBody2, USkeletalMeshComponent* OwnerComp, bool bInSimulatePhysics);
 
     FBodyInstance* Body1 = nullptr;

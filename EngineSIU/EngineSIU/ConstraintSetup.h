@@ -25,8 +25,8 @@ public:
         : JointName(NAME_None)
         , ConstraintBone1(NAME_None)
         , ConstraintBone2(NAME_None)
-        , LocalFrame1(FTransform::Identity)
-        , LocalFrame2(FTransform::Identity)
+        , LocalFrame1(physx::PxTransform())
+        , LocalFrame2(physx::PxTransform())
         , bDisableCollisionBetweenConstrainedBodies(false)
     {    }
 
@@ -34,8 +34,8 @@ public:
     FName ConstraintBone1;
     FName ConstraintBone2;
 
-    FTransform LocalFrame1;
-    FTransform LocalFrame2;
+    physx::PxTransform LocalFrame1;
+    physx::PxTransform LocalFrame2;
 
     FAngularConstraintLimit AngularLimits;
 
