@@ -4,10 +4,9 @@
 #include "Math/MathUtility.h"     
 #include "PxPhysicsAPI.h"
 #include "ConstraintSetup.h"
+#include "PhysicsEngine/PhysX/PhysX.h"
 
 using namespace physx;
-
-extern PxPhysics* GPhysics;
 
 void FConstraintInstance::InitConstraint(
     const UConstraintSetup* Setup,
@@ -16,7 +15,7 @@ void FConstraintInstance::InitConstraint(
     USkeletalMeshComponent* OwnerComp,
     bool bInSimulatePhysics)
 {
-    if (bInitialized || !GPhysics || !InBody1 || !InBody2 || !InBody1->RigidActor || !InBody2->RigidActor)
+    if (bInitialized || !FPhysX::GPhysics || !InBody1 || !InBody2 || !InBody1->RigidActor || !InBody2->RigidActor)
     {
         return;
     }
@@ -43,7 +42,7 @@ void FConstraintInstance::InitConstraint(
 
     PxTransform PLocalFrame_Parent = parentActorWorldPose.getInverse() * childJointFrameInWorld;
 
-    PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
+    PxD6Joint* D6Joint = PxD6JointCreate(*FPhysX::GPhysics,
         PActor2,            // actor0 = 자식 (PActor2)
         PLocalFrame_Child,  // localFrame0 = 수정된 자식 기준 프레임
         PActor1,            // actor1 = 부모 (PActor1)
