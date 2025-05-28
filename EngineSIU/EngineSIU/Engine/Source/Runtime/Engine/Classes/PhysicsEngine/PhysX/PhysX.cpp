@@ -67,9 +67,7 @@ void FPhysX::Initialize()
         PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
     }
 #endif
-
     GMaterial = GPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-
     // PhysX Cooking 라이브러리 초기화 (필요시)
     // PxInitExtensions(*GPhysics, pvd);
 }

@@ -8,7 +8,7 @@
 
 #include "PxPhysicsAPI.h"
 
-struct UConstraintInstance;
+struct FConstraintInstance;
 class UAnimSequence;
 class USkeletalMesh;
 struct FAnimNotifyEvent;
@@ -143,7 +143,7 @@ public:
     TArray<FBodyInstance*> Bodies;
 
     /** Array of FConstraintInstance structs, storing per-instance state about each constraint. */
-    TArray<UConstraintInstance*> Constraints;
+    TArray<FConstraintInstance*> Constraints;
 
     // 물리 상태 생성/파괴
     //virtual bool ShouldCreatePhysicsState() const;
@@ -196,7 +196,7 @@ public:
     bool IsRagDollSimulating() const { return bRagDollSimulating; }
 
     void InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton);
-    void CreateRagDoll(const physx::PxVec3& WorldRoot);
+    //void CreateRagDoll(const physx::PxVec3& WorldRoot);
     void DestroyRagDoll();
 
     void UpdateRagdoll();
@@ -207,4 +207,17 @@ protected:
 
     void PopulatePhysicsAssetFromSkeleton(UPhysicsAsset* PhysicsAssetToPopulate, const FReferenceSkeleton& InRefSkeleton);
     void CreateRagDollFromPhysicsAsset();
+
+private:
+    const float DefaultBodyMass = 0.05f;
+    const float MinRadius = 0.1f;                     // 캡슐의 최소 반지름
+    const float MaxRadius = 3.0f;                     // 캡슐의 최대 반지름
+    const float DefaultRadius = 0.5f;                 // 기본 반지름
+    const float MinCylinderLength = 0.01f;             // 캡슐의 원통 부분 최소 길이
+    const float DefaultBoneLength = 2.0f;            // 자식이 없거나 길이가 매우 짧은 본의 기본 길이
+    float CalculatedRadius = 0.5f; //DefaultRadius
+    float CalculatedCylinderLength = 2.f; // 원통 부분의 길이 (DefaultBoneLength)
+
+    void CalculateElement(UBodySetup* InBodySetup, const FReferenceSkeleton& InRefSkeleton, int32 BoneIndex);
+
 };

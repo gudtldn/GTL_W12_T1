@@ -5,7 +5,7 @@
 #include "BodySetup.h"
 #include "Components/PrimitiveComponent.h"
 #include "extensions/PxRigidBodyExt.h"
-
+#include <iomanip> 
 
 using namespace physx;
 
@@ -101,8 +101,40 @@ PxShape* FBodyInstance::CreateShapeFromBox(const FKBoxElem& BoxElem, const PxMat
 
 PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const PxMaterial& Material) const
 {
+    // OwnerComponent와 BodySetup에서 본 이름을 가져와 로그에 포함하면 디버깅에 매우 유용합니다.
+    // FName BoneName = (OwnerComponent && OwnerComponent->GetBodySetup() == BodySetupRef) ? AssociatedBoneName : TEXT("UnknownBone");
+    // 위 방법은 FBodyInstance가 UBodySetup*나 BoneName을 직접 알 수 있도록 수정해야 가능.
+    // 임시로 SphylElem의 값만 출력
+
+    // 첫 번째 UE_LOG 대신 std::cout 사용 (멤버 직접 출력)
+    std::cout << "CreateShapeFromSphyl: Radius=" << std::fixed << std::setprecision(5) << SphylElem.Radius
+        << ", Length (Cylinder)=" << SphylElem.Length
+        << ", Center=(" << SphylElem.Center.X << ", " << SphylElem.Center.Y << ", " << SphylElem.Center.Z << ")"
+        << ", Rotation=(P=" << SphylElem.Rotation.Pitch << ", Y=" << SphylElem.Rotation.Yaw << ", R=" << SphylElem.Rotation.Roll << ")"
+        // 만약 Rotation이 쿼터니언이라면:
+        // << ", Rotation=(X=" << SphylElem.Rotation.X << ", Y=" << SphylElem.Rotation.Y << ", Z=" << SphylElem.Rotation.Z << ", W=" << SphylElem.Rotation.W << ")"
+        << std::endl;
+
+
+    float Radius = SphylElem.Radius;
+    float HalfHeight = SphylElem.Length / 2.0f; // FKSphylElem.Length가 원통 부분의 길이라고 가정
+
+    // PhysX는 Radius > 0, HalfHeight >= 0 을 요구합니다.
+    if (Radius <= 0.0f || HalfHeight < 0.0f) // HalfHeight는 0일 수 있지만, Radius는 0보다 커야 함
+    {
+
+        std::cerr << "!!! INVALID SPHYL PARAMS !!! Radius=" << std::fixed << std::setprecision(5) << Radius
+            << ", HalfHeight=" << HalfHeight << ". Shape creation WILL FAIL."
+            << std::endl;
+        // 여기서 에러를 명확히 인지하고, 문제가 되는 SphylElem의 소스(어떤 본에서 왔는지)를 추적해야 합니다.
+        // 임시 방편으로 NULL을 반환하거나, 아주 작은 기본값으로 시도해볼 수 있지만, 근본 원인을 찾아야 합니다.
+        return nullptr; // 또는 기본값으로 강제 생성 시도 (하지만 이는 문제를 가릴 수 있음)
+        // if (Radius <= 0.0f) Radius = 0.001f;
+        // if (HalfHeight < 0.0f) HalfHeight = 0.0f;
+    }
+
     PxShape* Shape = GPhysics->createShape(
-        PxCapsuleGeometry(SphylElem.Radius, SphylElem.Length / 2.0f), // 캡슐 지오메트리
+        PxCapsuleGeometry(Radius, HalfHeight),
         Material,
         true,
         PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE
@@ -111,9 +143,6 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
     if (Shape)
     {
         const FQuat EngineQuat = SphylElem.Rotation.Quaternion();
-        // PhysX 캡슐은 X축 기준이므로, 필요시 엔진 좌표계에 맞춰 추가 회전 적용
-        // 예: EngineQuat = EngineQuat * FQuat(FVector::UpVector, -PI / 2.0f) * FQuat(FVector::RightVector, PI / 2.0f);
-
         const PxQuat PxQuatRotation(EngineQuat.X, EngineQuat.Y, EngineQuat.Z, EngineQuat.W);
         const PxTransform LocalPose(
             PxVec3(SphylElem.Center.X, SphylElem.Center.Y, SphylElem.Center.Z),
@@ -121,9 +150,11 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
         );
         Shape->setLocalPose(LocalPose);
     }
+    else {
+        std::cout << "GPhysics->createShape returned NULL for Sphyl. Params: R="<< Radius<< "HH = "<< HalfHeight << std::endl;
+    }
     return Shape;
 }
-
 PxShape* FBodyInstance::CreateShapeFromConvex(const FKConvexElem& ConvexElem, const PxMaterial& Material) const
 {
     return nullptr;

@@ -1,24 +1,26 @@
 #pragma once
 #include "UObject/ObjectMacros.h"
 
+#include "PxPhysicsAPI.h" 
 #include "PhysicsEngine/BodyInstance.h"
+#include "ConstraintInstanceCore.h"
 
 class USkeletalMeshComponent;
 class UPrimitiveComponent;
 class UConstraintSetup;
 
-class UConstraintInstance : public UConstraintSetup
+struct FConstraintInstance : FConstraintInstanceCore
 {
-    DECLARE_CLASS(UConstraintInstance, UConstraintSetup)
+    DECLARE_STRUCT(FConstraintInstance, FConstraintInstanceCore)
 
 public:
-    UConstraintInstance() = default;
-    virtual ~UConstraintInstance() override = default;
+    FConstraintInstance() = default;
+    virtual ~FConstraintInstance() override = default;
 
-    UConstraintInstance(const UConstraintInstance&) = default;
-    UConstraintInstance& operator=(const UConstraintInstance&) = default;
-    UConstraintInstance(UConstraintInstance&&) = default;
-    UConstraintInstance& operator=(UConstraintInstance&&) = default;
+    FConstraintInstance(const FConstraintInstance&) = default;
+    FConstraintInstance& operator=(const FConstraintInstance&) = default;
+    FConstraintInstance(FConstraintInstance&&) = default;
+    FConstraintInstance& operator=(FConstraintInstance&&) = default;
 
 public:
     UPROPERTY(
@@ -34,7 +36,6 @@ public:
 
     void InitConstraint(const UConstraintSetup* Setup, FBodyInstance* InBody1, FBodyInstance* InBody2, USkeletalMeshComponent* OwnerComp, bool bInSimulatePhysics);
 
-private:
     FBodyInstance* Body1 = nullptr;
     FBodyInstance* Body2 = nullptr;
     physx::PxJoint* Joint = nullptr;

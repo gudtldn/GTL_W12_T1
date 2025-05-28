@@ -1812,6 +1812,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessRenderPass.h" />
     <ClInclude Include="ConstraintSetup.h" />
     <ClInclude Include="ConstraintSetupCore.h" />
+    <ClInclude Include="ConstraintInstanceCore.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />

@@ -9,7 +9,7 @@ using namespace physx;
 
 extern PxPhysics* GPhysics;
 
-PxTransform UConstraintInstance::ToPxTransform(const FTransform& UnrealTransform)
+PxTransform FConstraintInstance::ToPxTransform(const FTransform& UnrealTransform)
 {
     const FVector Position = UnrealTransform.GetLocation();
     FQuat Quaternion = UnrealTransform.GetRotation();
@@ -20,7 +20,7 @@ PxTransform UConstraintInstance::ToPxTransform(const FTransform& UnrealTransform
     );
 }
 
-void UConstraintInstance::InitConstraint(
+void FConstraintInstance::InitConstraint(
     const UConstraintSetup* Setup,
     FBodyInstance* InBody1,
     FBodyInstance* InBody2,
@@ -31,16 +31,15 @@ void UConstraintInstance::InitConstraint(
     {
         return;
     }
+
     Body1 = InBody1;
     Body2 = InBody2;
     JointName = Setup->JointName;
 
     PxRigidActor* PActor1 = Body1->RigidActor;
     PxRigidActor* PActor2 = Body2->RigidActor;
-
     PxTransform PLocalFrame1 = ToPxTransform(Setup->LocalFrame1);
     PxTransform PLocalFrame2 = ToPxTransform(Setup->LocalFrame2);
-
     PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
         PActor1, PLocalFrame1,
         PActor2, PLocalFrame2
@@ -82,7 +81,7 @@ void UConstraintInstance::InitConstraint(
     bInitialized = true;
 }
 
-void UConstraintInstance::TermConstraint()
+void FConstraintInstance::TermConstraint()
 {
     if (bInitialized && Joint)
     {

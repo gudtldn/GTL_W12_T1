@@ -1,5 +1,3 @@
-// BodyInstance.h
-
 #pragma once
 #include "BodyInstanceCore.h"
 
