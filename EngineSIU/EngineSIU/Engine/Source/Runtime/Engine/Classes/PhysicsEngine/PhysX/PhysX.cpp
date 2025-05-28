@@ -15,14 +15,43 @@ static PxFilterFlags ContactReportFilterShader(
     PX_UNUSED(ConstantBlockSize);
     PX_UNUSED(ConstantBlock);
 
+    // 1. 블로킹 충돌 여부 결정
+    //    (obj0의 타입이 obj1의 블로킹 마스크에 포함되고, obj1의 타입이 obj0의 블로킹 마스크에 포함되는지)
+    bool bBlock = (FilterData0.word0 & FilterData1.word1) && (FilterData1.word0 & FilterData0.word1);
+
+    if (bBlock)
+    {
+        PairFlags = PxPairFlag::eCONTACT_DEFAULT; // 물리적 반작용
+
+        // 2. onContact 이벤트 발생 여부 결정 (word2를 터치 마스크로 사용한다고 가정)
+        bool bNotifyTouch = (FilterData0.word0 & FilterData1.word2) && (FilterData1.word0 & FilterData0.word2);
+        if (bNotifyTouch)
+        {
+            PairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+            PairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS; // 필요시 추가
+            // PairFlags |= PxPairFlag::eNOTIFY_TOUCH_LOST;     // 필요시 추가
+        }
+        return PxFilterFlag::eDEFAULT;
+    }
+
+    // TODO: 오버랩(트리거) 이벤트 처리 로직 (word2 또는 다른 word를 오버랩 마스크로 사용)
+    // bool bOverlap = (filterData0.word0 & filterData1.word_for_overlap_mask) && ...
+    // if (bOverlap) {
+    //    pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT; // 물리 반응은 없고 이벤트만
+    //    return physx::PxFilterFlag::eDEFAULT;
+    // }
+
+
+    return PxFilterFlag::eSUPPRESS; // 그 외에는 충돌 및 이벤트 없음
+
     // all initial and persisting reports for everything, with per-point data
-    PairFlags = PxPairFlag::eSOLVE_CONTACT     // 물리적 충돌 해결 (반작용)
-        | PxPairFlag::eDETECT_DISCRETE_CONTACT // 이산 충돌 감지
-        | PxPairFlag::eNOTIFY_TOUCH_FOUND      // 접촉 시작 시 알림
-        // | PxPairFlag::eNOTIFY_TOUCH_PERSISTS   // 접촉 유지 시 알림
-        | PxPairFlag::eNOTIFY_TOUCH_LOST      // 접촉 종료 시 알림
-        | PxPairFlag::eNOTIFY_CONTACT_POINTS; // 접촉점 정보 요청
-    return PxFilterFlag::eDEFAULT;
+    // PairFlags = PxPairFlag::eSOLVE_CONTACT     // 물리적 충돌 해결 (반작용)
+    //     | PxPairFlag::eDETECT_DISCRETE_CONTACT // 이산 충돌 감지
+    //     | PxPairFlag::eNOTIFY_TOUCH_FOUND      // 접촉 시작 시 알림
+    //     // | PxPairFlag::eNOTIFY_TOUCH_PERSISTS   // 접촉 유지 시 알림
+    //     | PxPairFlag::eNOTIFY_TOUCH_LOST      // 접촉 종료 시 알림
+    //     | PxPairFlag::eNOTIFY_CONTACT_POINTS; // 접촉점 정보 요청
+    // return PxFilterFlag::eDEFAULT;
 
     // TODO: BodySetup에서 ECollisionChannel 만들어서 word 설정하기
     // #define HIT_EVENT_FLAG (1 << 0) // word2의 첫 번째 비트
