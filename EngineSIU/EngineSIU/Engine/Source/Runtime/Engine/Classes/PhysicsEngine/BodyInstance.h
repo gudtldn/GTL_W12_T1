@@ -1,21 +1,15 @@
-﻿#pragma once
+#pragma once
 #include "BodyInstanceCore.h"
 
-struct FKConvexElem;
-struct FKSphylElem;
-struct FKBoxElem;
-struct FKSphereElem;
-
-namespace physx
-{
-class PxShape;
-class PxMaterial;
-class PxRigidActor;
-}
+#include "PxPhysicsAPI.h" 
 
 class UBodySetup;
 class UPrimitiveComponent;
 
+struct FKSphereElem; 
+struct FKBoxElem;
+struct FKSphylElem;
+struct FKConvexElem;
 
 struct FBodyInstance : FBodyInstanceCore
 {
@@ -51,6 +45,8 @@ public:
     void SetSimulatePhysics(bool bSimulate);
     bool IsSimulatingPhysics() const;
 
+    physx::PxRigidActor* RigidActor;
+
 private:
     TWeakObjectPtr<UPrimitiveComponent> OwnerComponent;
 
@@ -63,7 +59,6 @@ private:
     physx::PxShape* CreateShapeFromSphyl(const FKSphylElem& SphylElem, const physx::PxMaterial& Material) const;
     physx::PxShape* CreateShapeFromConvex(const FKConvexElem& ConvexElem, const physx::PxMaterial& Material) const;
 
-    physx::PxRigidActor* RigidActor;
 
     // 현재 물리 시뮬레이션 여부
     bool bIsSimulatingPhysics;

@@ -15,7 +15,20 @@
 #include "PhysicsEngine/ConstraintInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
 #include "UObject/Casts.h"
+
 #include "UObject/ObjectFactory.h"
+#include "PhysicsEngine/BodySetupCore.h"
+
+#include "PxPhysicsAPI.h"
+
+using namespace std;
+using namespace physx;
+
+extern PxFoundation* GFoundation;
+extern PxPhysics* GPhysics;
+extern PxDefaultCpuDispatcher* GDispatcher;
+extern PxScene* GScene;
+extern PxMaterial* GMaterial;
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -25,7 +38,8 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     , AnimClass(nullptr)
     , AnimScriptInstance(nullptr)
     , bPlayAnimation(true)
-    ,BonePoseContext(nullptr)
+    , BonePoseContext(nullptr)
+    , bRagDollSimulating(true)
 {
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
@@ -68,10 +82,21 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
 void USkeletalMeshComponent::PhysicsTick()
 {
+    Super::PhysicsTick();
+
     if (bSimulatePhysics && Bodies.Num() > 0)
     {
         SyncBodiesToBones();
     }
+
+
+    //for (auto body : Bodies)
+    //{
+    //    if (body->IsValidBodyInstance() && body->IsSimulatingPhysics())
+    //    {
+    //        body->SyncPhysXToComponent();
+    //    }
+    //}
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -165,18 +190,36 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     RefBonePoseTransforms.Empty();
     AABB = FBoundingBox(InSkeletalMeshAsset->GetRenderData()->BoundingBoxMin, SkeletalMeshAsset->GetRenderData()->BoundingBoxMax);
     
-    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-    BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
-    for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
     {
-        BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
-        RefBonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+        BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
+        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+        {
+            BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
+            RefBonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        }
+
+        if (SkeletalMeshAsset->GetRenderData())
+        {
+            CPURenderData->Vertices = SkeletalMeshAsset->GetRenderData()->Vertices;
+            CPURenderData->Indices = SkeletalMeshAsset->GetRenderData()->Indices;
+            CPURenderData->ObjectName = SkeletalMeshAsset->GetRenderData()->ObjectName;
+            CPURenderData->MaterialSubsets = SkeletalMeshAsset->GetRenderData()->MaterialSubsets;
+        }
+
+        // PhysicsAsset 처리
+        UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
+        if (!PhysAsset) // PhysicsAsset이 없다면 새로 생성
+        {
+            PhysAsset = FObjectFactory::ConstructObject<UPhysicsAsset>(this); 
+            SkeletalMeshAsset->SetPhysicsAsset(PhysAsset);
+        }
+        PhysAsset->BodySetup.Empty();
+        PhysAsset->ConstraintSetup.Empty();
+
+        InitializeRagDoll(RefSkeleton);
     }
-    
-    CPURenderData->Vertices = InSkeletalMeshAsset->GetRenderData()->Vertices;
-    CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
-    CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
-    CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
 }
 
 FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
@@ -425,163 +468,105 @@ void USkeletalMeshComponent::ClearPhysicsState()
     Bodies.Empty();
 }
 
+
 void USkeletalMeshComponent::InstantiatePhysicsAsset()
 {
     if (!(SkeletalMeshAsset && SkeletalMeshAsset->GetPhysicsAsset()))
     {
         return;
     }
-
-    UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
-
-    // 1. Bodies 생성
-    Bodies.Reserve(PhysAsset->BodySetup.Num());
-    for (UBodySetup* Setup : PhysAsset->BodySetup)
-    {
-        if (Setup)
-        {
-            FBodyInstance* NewBodyInstance = new FBodyInstance();
-
-            // Setup->BoneName을 사용하여 이 BodySetup에 연결된 본의 인덱스를 찾고,
-            // 해당 본의 현재 월드 또는 컴포넌트 공간 트랜스폼을 가져옵니다.
-            // 이 부분은 스켈레탈 애니메이션 시스템과의 연동이 필요합니다.
-            FTransform BodyTransform = GetComponentTransform(); // 기본값: 컴포넌트 트랜스폼
-            int32 BoneIndex = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->BoneName);
-            if (BoneIndex != INDEX_NONE)
-            {
-                // BodyTransform = GetBoneTransform(BoneIndex); // 컴포넌트 공간 또는 월드 공간 트랜스폼 가져오기
-            }
-
-            // InitBody 호출. UPrimitiveComponent 대신 this (USkeletalMeshComponent*)를 전달하거나,
-            // FBodyInstance가 UActorComponent*를 받도록 수정할 수 있습니다.
-            // 여기서는 UPrimitiveComponent의 파생 클래스라고 가정하고 this 전달.
-            NewBodyInstance->InitBody(this, Setup, BodyTransform, bSimulatePhysics); // bSimulatePhysics는 USMC 멤버
-            Bodies.Add(NewBodyInstance);
-        }
-    }
-
-    // 2. Constraints 생성 (UPhysicsAsset에 ConstraintSetup 배열이 있다고 가정)
-    // if (PhysAsset->ConstraintSetups.Num() > 0) // ConstraintSetups는 UPhysicsAsset의 TArray<UConstraintSetup*> 멤버라고 가정
-    // {
-    //     Constraints.Reserve(PhysAsset->ConstraintSetups.Num());
-    //     for (UConstraintSetup* ConstraintSetup : PhysAsset->ConstraintSetups)
-    //     {
-    //         if (ConstraintSetup)
-    //         {
-    //             // ConstraintSetup에서 필요한 정보 (연결할 두 Body의 인덱스 또는 이름, 조인트 설정 등)를 가져옵니다.
-    //             // 해당 Body 인덱스를 사용하여 Bodies 배열에서 FBodyInstance 포인터를 찾습니다.
-    //             FBodyInstance* Body1 = nullptr;
-    //             FBodyInstance* Body2 = nullptr;
-    //             // ... (ConstraintSetup->BoneName1, ConstraintSetup->BoneName2 등으로 Bodies 배열에서 검색) ...
-    //
-    //             if (Body1 && Body2) // 두 Body가 모두 유효해야 조인트 생성 가능
-    //             {
-    //                 FConstraintInstance* NewConstraintInstance = new FConstraintInstance();
-    //                 // NewConstraintInstance->InitConstraint(this, ConstraintSetup, Body1, Body2);
-    //                 Constraints.Add(NewConstraintInstance);
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 void USkeletalMeshComponent::SyncBodiesToBones()
 {
-    // 이 함수는 물리 시뮬레이션이 완료된 후 (FPhysX::Tick 이후) 호출되어야 합니다.
-    // 그리고 bSimulatePhysics가 true일 때만 의미가 있습니다.
-
     if (!bSimulatePhysics || Bodies.Num() == 0)
     {
         return;
     }
 
     UPhysicsAsset* CurrentPhysicsAsset = SkeletalMeshAsset->GetPhysicsAsset();
-    USkeletalMesh* CurrentSkeletalMesh = GetSkeletalMeshAsset(); // 또는 멤버 변수 직접 사용
+    USkeletalMesh* CurrentSkeletalMesh = GetSkeletalMeshAsset();
 
     if (!CurrentPhysicsAsset || !CurrentSkeletalMesh || !CurrentSkeletalMesh->GetSkeleton())
     {
-        // 필요한 에셋 정보가 없으면 동기화 불가
-        // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: Missing PhysicsAsset, SkeletalMesh, or Skeleton."));
         return;
     }
 
     USkeleton* Skeleton = CurrentSkeletalMesh->GetSkeleton();
+    const int32 NumBones = Skeleton->GetReferenceSkeleton().GetRawBoneNum();
 
-    // 컴포넌트의 현재 월드 트랜스폼 (본 트랜스폼을 컴포넌트 공간으로 변환 시 필요)
-    // const FTransform ComponentToWorldInverse = GetComponentToWorld().Inverse();
+    const FTransform ComponentToWorld = GetComponentTransform();
+    const FTransform WorldToComponent = ComponentToWorld.Inverse();
+
+    TMap<int32, FTransform> SimulatedBoneWorldTransforms;
 
     for (int32 BodyInstanceIndex = 0; BodyInstanceIndex < Bodies.Num(); ++BodyInstanceIndex)
     {
         FBodyInstance* BodyInst = Bodies[BodyInstanceIndex];
-
-        // 해당 FBodyInstance에 대한 UBodySetup 정보 가져오기
-        // (PhysicsAsset의 BodySetup 배열과 Bodies 배열의 인덱스가 일치한다고 가정)
-        if (BodyInstanceIndex >= CurrentPhysicsAsset->BodySetup.Num())
-        {
-            // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: BodyInstanceIndex out of bounds for PhysicsAsset BodySetups."));
-            continue;
-        }
+        if (BodyInstanceIndex >= CurrentPhysicsAsset->BodySetup.Num()) continue;
         UBodySetup* AssociatedBodySetup = CurrentPhysicsAsset->BodySetup[BodyInstanceIndex];
 
         if (BodyInst && BodyInst->IsValidBodyInstance() && BodyInst->IsSimulatingPhysics() && AssociatedBodySetup)
         {
-            FName BoneName = AssociatedBodySetup->BoneName; // UBodySetup에서 본 이름 가져오기
-            if (BoneName == NAME_None)
-            {
-                // 이 BodySetup이 특정 본에 연결되지 않았다면 (예: 전체를 감싸는 하나의 바디),
-                // 컴포넌트 자체의 트랜스폼을 업데이트하거나 다른 처리를 할 수 있음.
-                // 여기서는 본에 연결된 경우만 처리.
-                continue;
-            }
+            FName BoneName = AssociatedBodySetup->BoneName;
+            if (BoneName == NAME_None) continue;
 
-            // 본 인덱스 확인
             int32 BoneIndex = Skeleton->FindBoneIndex(BoneName);
-            if (BoneIndex == INDEX_NONE)
-            {
-                // UE_LOG(LogSkeletalMesh, Warning, TEXT("SyncBodiesToBones: Bone '%s' not found in Skeleton."), *BoneName.ToString());
-                continue;
-            }
+            if (BoneIndex == INDEX_NONE) continue;
 
-            // 1. FBodyInstance로부터 PhysX Actor의 현재 월드 트랜스폼을 가져옵니다.
             FTransform PhysXWorldTransform = BodyInst->GetWorldTransform();
-
-            // 2. 가져온 월드 트랜스폼을 해당 본에 직접 설정합니다.
-            //    이 작업은 애니메이션 결과를 덮어쓰게 됩니다.
-            //    SetBoneWorldSpaceTransform 함수가 있다고 가정.
-            //    이 함수는 내부적으로 다른 자식 본들의 상대적 위치도 업데이트해야 할 수 있음 (Forward Kinematics).
-            //    또는, 단순히 해당 본의 공간 변환 정보만 업데이트하고,
-            //    메시 디포메이션은 나중에 전체 본 계층 구조를 기반으로 수행될 수 있음.
-
-            // 예시: 가상의 SetBoneWorldTransform 함수 호출
-            // SetBoneWorldTransform(BoneIndex, PhysXWorldTransform);
-            // 또는
-            // SetBoneTransformByName(BoneName, PhysXWorldTransform, EBoneSpaces::WorldSpace);
-
-            // 만약 본 트랜스폼을 컴포넌트 공간으로 설정해야 한다면:
-            // FTransform BoneComponentSpaceTransform = PhysXWorldTransform * ComponentToWorldInverse;
-            // SetBoneTransformByName(BoneName, BoneComponentSpaceTransform, EBoneSpaces::ComponentSpace);
-
-            // UE_LOG(LogSkeletalMesh, Verbose, TEXT("Bone '%s' (Index %d) synced to PhysX Transform: %s"),
-            //     *BoneName.ToString(), BoneIndex, *PhysXWorldTransform.ToString());
-
-
-            // 실제 언리얼 엔진에서는 이 과정이 더 복잡합니다.
-            // - SpaceBases (로컬 공간), BoneSpaceTransforms (컴포넌트 공간) 등을 업데이트.
-            // - Kinematic 본과 Simulated 본을 구분하여 처리.
-            // - 텔레포트 여부, 물리 블렌딩 가중치 등을 고려.
-            // - `FillComponentSpaceTransforms()` 같은 함수를 통해 최종 컴포넌트 공간 변환 배열을 채움.
-
-            // 여기서는 가장 기본적인 "물리 결과를 본의 월드 트랜스폼으로 직접 적용"하는 로직을 가정합니다.
-            // 사용자 엔진의 스켈레탈 애니메이션 시스템 구조에 맞춰 구체적인 본 트랜스폼 설정 방식을 구현해야 합니다.
-            // 예를 들어, 각 본의 FMatrix 또는 FTransform 배열을 직접 업데이트할 수 있습니다.
-            // GetEditableBoneTransform(BoneIndex).SetFromMatrix(PhysXWorldTransform.ToMatrixWithScale());
+            SimulatedBoneWorldTransforms.Add(BoneIndex, PhysXWorldTransform);
         }
     }
 
-    // 모든 물리 본의 트랜스폼이 업데이트된 후,
-    // 컴포넌트의 최종 바운딩 박스 등을 다시 계산해야 할 수 있습니다.
-    // MarkRenderTransformDirty(); // 렌더링 시스템에 트랜스폼 변경 알림
-    // UpdateBounds(); // 바운딩 볼륨 업데이트
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        if (SimulatedBoneWorldTransforms.Contains(BoneIndex))
+        {
+            FTransform NewWorldTransform = SimulatedBoneWorldTransforms[BoneIndex];
+            FTransform NewLocalTransform;
+
+            int32 ParentIndex = Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo()[BoneIndex].ParentIndex;
+
+            if (ParentIndex == INDEX_NONE)
+            {
+                NewLocalTransform = NewWorldTransform * WorldToComponent;
+            }
+            else
+            {
+                FTransform ParentWorldTransform;
+                if (SimulatedBoneWorldTransforms.Contains(ParentIndex))
+                {
+                    ParentWorldTransform = SimulatedBoneWorldTransforms[ParentIndex];
+                }
+                else
+                {
+                    TArray<FTransform> TempBoneSpaceTransforms;
+                    TempBoneSpaceTransforms.SetNum(NumBones);
+                    for (int32 i = 0; i < NumBones; ++i)
+                    {
+                        const FTransform& BoneLocalSpace = BonePoseContext.Pose[i];
+                        int32 CurrentParentIdx = Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo()[i].ParentIndex;
+                        if (CurrentParentIdx == INDEX_NONE)
+                        {
+                            TempBoneSpaceTransforms[i] = BoneLocalSpace;
+                        }
+                        else
+                        {
+                            TempBoneSpaceTransforms[i] = BoneLocalSpace * TempBoneSpaceTransforms[CurrentParentIdx];
+                        }
+                    }
+                    ParentWorldTransform = TempBoneSpaceTransforms[ParentIndex] * ComponentToWorld;
+                }
+
+                NewLocalTransform = NewWorldTransform.GetRelativeTransform(ParentWorldTransform);
+            }
+
+            BonePoseContext.Pose[BoneIndex] = NewLocalTransform;
+        }
+    }
+    // MarkRenderStateDirty(); // 렌더링 상태 변경 알림 (본 트랜스폼이 바뀌었으므로)
+    // UpdateBounds();       // 바운딩 볼륨 업데이트
 }
 
 void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)
@@ -869,4 +854,296 @@ void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
     {
         SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
     }
+}
+void USkeletalMeshComponent::InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton)
+{
+    if (InRefSkeleton.GetRawBoneNum() == 0)
+    {
+        return;
+    }
+    if (!SkeletalMeshAsset)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAssetToPopulate = SkeletalMeshAsset->GetPhysicsAsset();
+    if (!PhysicsAssetToPopulate)
+    {
+        return; 
+    }
+
+    //for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); ++BoneIndex)
+    //{
+    //    RagdollBone& CurrentRagdollBone = RagdollBones[BoneIndex];
+    //    const FMeshBoneInfo& MeshBoneInfo = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex];
+
+    //    CurrentRagdollBone.name = MeshBoneInfo.Name;
+    //    CurrentRagdollBone.parentIndex = MeshBoneInfo.ParentIndex;
+
+    //    FTransform BoneLocalTransform = InRefSkeleton.GetRawRefBonePose()[BoneIndex];
+    //    CurrentRagdollBone.offset = PxVec3(BoneLocalTransform.GetLocation().X,
+    //        BoneLocalTransform.GetLocation().Y,
+    //        BoneLocalTransform.GetLocation().Z);
+
+    //    // CurrentRagdollBone.halfSize = physx::PxVec3(0.f); // 필요하다면 초기화
+    //}
+
+    PopulatePhysicsAssetFromSkeleton(PhysicsAssetToPopulate, InRefSkeleton);
+}
+
+void USkeletalMeshComponent::DestroyRagDoll()
+{
+    RagdollBones.Empty();
+}
+
+void USkeletalMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CreateRagDollFromPhysicsAsset();
+
+}
+
+void USkeletalMeshComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    DestroyPhysicsState();
+    //DestroyRagDoll();
+}
+
+void USkeletalMeshComponent::PopulatePhysicsAssetFromSkeleton(UPhysicsAsset* PhysicsAssetToPopulate, const FReferenceSkeleton& InRefSkeleton)
+{
+    //if (!PhysicsAssetToPopulate || InRefSkeleton.GetRawBoneNum() == 0 || RagdollBones.Num() != InRefSkeleton.GetRawBoneNum())
+    if (!PhysicsAssetToPopulate || InRefSkeleton.GetRawBoneNum() == 0)
+    {
+        return;
+    }
+
+    PhysicsAssetToPopulate->BodySetup.Empty();
+    PhysicsAssetToPopulate->ConstraintSetup.Empty();
+
+    // BodySetup 생성
+    for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); ++BoneIndex)
+    {
+        //const RagdollBone& CurrentRagdollBone = RagdollBones[BoneIndex];
+        UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(PhysicsAssetToPopulate);
+        NewBodySetup->BoneName = InRefSkeleton.GetRawRefBoneNames()[BoneIndex];
+        NewBodySetup->bOverrideMass = true;
+        NewBodySetup->Mass = DefaultBodyMass;
+        NewBodySetup->LinearDamping = 0.05f;
+        NewBodySetup->AngularDamping = 0.05f;
+
+        CalculateElement(NewBodySetup, BoneIndex);
+
+        PhysicsAssetToPopulate->BodySetup.Add(NewBodySetup);
+    }
+
+    // FIX-ME
+    // ConstraintSetup 생성
+    for (int32 BoneIndex = 0; BoneIndex < InRefSkeleton.GetRawBoneNum(); ++BoneIndex)
+    {
+        const FMeshBoneInfo& CurrentMeshBoneInfo = InRefSkeleton.GetRawRefBoneInfo()[BoneIndex];
+        if (CurrentMeshBoneInfo.ParentIndex != INDEX_NONE)
+        {
+            const FMeshBoneInfo& ParentMeshBoneInfo = InRefSkeleton.GetRawRefBoneInfo()[CurrentMeshBoneInfo.ParentIndex];
+
+            UConstraintSetup* NewConstraintSetup = FObjectFactory::ConstructObject<UConstraintSetup>(PhysicsAssetToPopulate);
+            NewConstraintSetup->JointName = FName(*(CurrentMeshBoneInfo.Name.ToString() + TEXT("_joint_") + ParentMeshBoneInfo.Name.ToString()));
+            NewConstraintSetup->ConstraintBone1 = ParentMeshBoneInfo.Name;
+            NewConstraintSetup->ConstraintBone2 = CurrentMeshBoneInfo.Name;
+
+            const FTransform& ParentRefPose_ComponentSpace = InRefSkeleton.GetRawRefBonePose()[CurrentMeshBoneInfo.ParentIndex];
+            const FTransform& ChildRefPose_ComponentSpace = InRefSkeleton.GetRawRefBonePose()[CurrentMeshBoneInfo.ParentIndex];
+
+            const FTransform& Corrected_ChildRefPose_ComponentSpace = InRefSkeleton.GetRawRefBonePose()[BoneIndex];
+
+            FTransform ChildLocalPose_RelativeToParent = Corrected_ChildRefPose_ComponentSpace * ParentRefPose_ComponentSpace.Inverse();
+
+            NewConstraintSetup->LocalFrame1 = ToPxTransform(ChildLocalPose_RelativeToParent);
+            NewConstraintSetup->LocalFrame2 = ToPxTransform(FTransform::Identity);
+
+            //FTransform childJointFrameTransform;
+            //childJointFrameTransform.SetRotation(FQuat(FVector::ZAxisVector, -FMath::DegreesToRadians(90.0f)));
+            //NewConstraintSetup->LocalFrame2 = ToPxTransform(childJointFrameTransform);
+            //FTransform parentJointFrameTransform = ChildLocalPose_RelativeToParent * childJointFrameTransform;
+            //NewConstraintSetup->LocalFrame1 = ToPxTransform(parentJointFrameTransform);
+
+            NewConstraintSetup->AngularLimits.TwistLimitAngle = 45.f;
+            NewConstraintSetup->AngularLimits.Swing1LimitAngle = 30.f;
+            NewConstraintSetup->AngularLimits.Swing2LimitAngle = 30.f;
+            NewConstraintSetup->bDisableCollisionBetweenConstrainedBodies = true;
+
+            PhysicsAssetToPopulate->ConstraintSetup.Add(NewConstraintSetup);
+        }
+    }
+}
+
+
+void USkeletalMeshComponent::CreateRagDollFromPhysicsAsset()
+{
+    if (!(SkeletalMeshAsset && SkeletalMeshAsset->GetPhysicsAsset() && SkeletalMeshAsset->GetSkeleton() && GetWorld()))
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysAsset = SkeletalMeshAsset->GetPhysicsAsset();
+    USkeleton* CurrentSkeleton = SkeletalMeshAsset->GetSkeleton();
+
+    if (PhysAsset->BodySetup.Num() == 0 && SkeletalMeshAsset->GetSkeleton())
+    {
+    }
+
+    ClearPhysicsState(); 
+
+    TMap<FName, FBodyInstance*> BoneNameToBodyInstanceMap;
+    Bodies.Reserve(PhysAsset->BodySetup.Num());
+
+    for (UBodySetup* Setup : PhysAsset->BodySetup)
+    {
+        if (Setup && Setup->BoneName != NAME_None)
+        {
+            FBodyInstance* NewBodyInstance = new FBodyInstance(); 
+            FTransform BoneWorldTransform = FTransform::Identity;
+            int32 BoneIdx = SkeletalMeshAsset->GetSkeleton()->FindBoneIndex(Setup->BoneName);
+            if (BoneIdx != INDEX_NONE)
+            {
+                //BoneWorldTransform = GetComponentTransform() * SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton().GetRawRefBonePose()[BoneIdx];
+                BoneWorldTransform = GetSocketTransform(Setup->BoneName);
+            }
+            else
+            {
+                BoneWorldTransform = GetComponentTransform(); // fallback
+            }
+
+            NewBodyInstance->InitBody(this, Setup, BoneWorldTransform, true /*bSimulatePhysics*/);
+            Bodies.Add(NewBodyInstance);
+            BoneNameToBodyInstanceMap.Add(Setup->BoneName, NewBodyInstance);
+        }
+    }
+    
+    // FIX-ME
+    // UConstraintSetup 정보를 기반으로 FConstraintInstance 생성
+    Constraints.Reserve(PhysAsset->ConstraintSetup.Num());
+    for (const UConstraintSetup* CSSetup : PhysAsset->ConstraintSetup) 
+    {
+        if (!CSSetup) continue;
+
+        FBodyInstance** PtrBodyInst1 = BoneNameToBodyInstanceMap.Find(CSSetup->ConstraintBone1);
+        FBodyInstance** PtrBodyInst2 = BoneNameToBodyInstanceMap.Find(CSSetup->ConstraintBone2);
+
+        if (PtrBodyInst1 && PtrBodyInst2)
+        {
+            FBodyInstance* BodyInst1 = *PtrBodyInst1;
+            FBodyInstance* BodyInst2 = *PtrBodyInst2;
+
+            // FBodyInstance 내부의 RigidActor가 유효한지 확인 (InitBody에서 생성되었어야 함)
+            if (BodyInst1 && BodyInst2 && BodyInst1->RigidActor && BodyInst2->RigidActor)
+            {
+                FConstraintInstance* NewConstraintInstance = new FConstraintInstance();
+                // InitConstraint 호출 시 bSimulatePhysics (또는 유사한 플래그) 전달
+                NewConstraintInstance->InitConstraint(CSSetup, BodyInst1, BodyInst2, this, true);
+                Constraints.Add(NewConstraintInstance);
+            }
+        }
+    }
+}
+
+void USkeletalMeshComponent::CalculateElement(UBodySetup* InBodySetup, int32 BoneIndex)
+{
+    if (!InBodySetup)
+    {
+        // UE_LOG(LogTemp, Error, TEXT("CalculateElement: InBodySetup is null for BoneIndex %d"), BoneIndex);
+        return;
+    }
+
+    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+
+    if (BoneIndex < 0 || BoneIndex >= RefSkeleton.GetRawBoneNum())
+    {
+        // UE_LOG(LogTemp, Error, TEXT("CalculateElement: Invalid BoneIndex %d. RagdollBones.Num() is %d"), BoneIndex, RagdollBones.Num());
+        return;
+    }
+
+    FKSphylElem CapsuleElem;
+
+    // 1. 고정된 반지름 설정
+    const float FixedRadius = 0.9f;
+    CapsuleElem.Radius = FixedRadius;
+
+    // 2. 캡슐 길이(원통 부분) 계산: 현재 본에서 자식 본까지의 거리
+    float CalculatedCylinderLength = 0.0f;
+    FVector BoneDirection = FVector::XAxisVector; // 기본 방향 (캡슐의 길이 방향 축)
+    FVector ChildLocalPos = FVector::XAxisVector;
+    bool bHasChild = false;
+
+    for (int32 ChildSearchIdx = 0; ChildSearchIdx < RefSkeleton.GetRawBoneNum(); ++ChildSearchIdx)
+    {
+        // RagdollBones[ChildSearchIdx].parentIndex가 현재 BoneIndex와 같은 자식 본을 찾음
+        if (RefSkeleton.GetParentIndex(ChildSearchIdx) == BoneIndex)
+        {
+            
+            // 자식 본의 부모 기준 오프셋 벡터 (RagdollBones[ChildSearchIdx].offset은 부모(현재 BoneIndex) 기준 자식의 로컬 위치)
+            //ChildLocalPos = FVector(RagdollBones[ChildSearchIdx].offset.x,
+            //    RagdollBones[ChildSearchIdx].offset.y,
+            //    RagdollBones[ChildSearchIdx].offset.z);
+
+            // FIX-ME
+            ChildLocalPos = RefSkeleton.GetRawRefBonePose()[ChildSearchIdx].GetLocation();
+
+            CalculatedCylinderLength = ChildLocalPos.Size() * 0.8f; // 자식까지의 거리를 원통 길이로 사용
+
+            if (CalculatedCylinderLength > KINDA_SMALL_NUMBER)
+            {
+                BoneDirection = ChildLocalPos.GetSafeNormal(); // 본의 방향 설정
+            }
+            else // 자식과의 거리가 매우 짧은 경우
+            {
+                CalculatedCylinderLength = MinCylinderLength; // 최소 길이 사용
+                // BoneDirection은 기본값(XAxisVector) 유지 또는 다른 방식 사용
+            }
+            bHasChild = true;
+            break; // 첫 번째 자식만 사용하여 길이와 방향 결정
+        }
+    }
+
+    if (!bHasChild)
+    {
+        CalculatedCylinderLength = MinCylinderLength; 
+    }
+
+    if (CalculatedCylinderLength < MinCylinderLength)
+    {
+        CalculatedCylinderLength = MinCylinderLength;
+    }
+
+    CapsuleElem.Length = CalculatedCylinderLength;
+
+    CapsuleElem.Center = ChildLocalPos / 2;
+
+    if (BoneDirection.IsNearlyZero() || BoneDirection.Equals(FVector::XAxisVector))
+    {
+        CapsuleElem.Rotation = FRotator::ZeroRotator;
+    }
+    else
+    {
+        FQuat RotQuat = FQuat::FindBetween(FVector::XAxisVector, BoneDirection);
+        CapsuleElem.Rotation = RotQuat.Rotator();
+    }
+
+    if (BoneIndex == 0) return;
+    InBodySetup->AggGeom.SphylElems.Add(CapsuleElem);
+
+}
+
+
+PxTransform USkeletalMeshComponent::ToPxTransform(const FTransform& UnrealTransform)
+{
+    const FVector Position = UnrealTransform.GetLocation();
+    FQuat Quaternion = UnrealTransform.GetRotation();
+    Quaternion.Normalize();
+    return PxTransform(
+        PxVec3(Position.X, Position.Y, Position.Z),
+        PxQuat(Quaternion.X, Quaternion.Z, Quaternion.Z, Quaternion.W)
+    );
 }

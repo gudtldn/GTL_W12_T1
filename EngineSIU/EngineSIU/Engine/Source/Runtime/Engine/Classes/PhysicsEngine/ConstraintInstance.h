@@ -1,25 +1,17 @@
 ﻿#pragma once
 #include "UObject/ObjectMacros.h"
 
+#include "PxPhysicsAPI.h" 
+#include "PhysicsEngine/BodyInstance.h"
+#include "ConstraintInstanceCore.h"
 
-struct FConstraintInstanceBase
+class USkeletalMeshComponent;
+class UPrimitiveComponent;
+class UConstraintSetup;
+
+struct FConstraintInstance : FConstraintInstanceCore
 {
-    DECLARE_STRUCT(FConstraintInstanceBase)
-
-public:
-    FConstraintInstanceBase() = default;
-    virtual ~FConstraintInstanceBase() = default;
-
-    FConstraintInstanceBase(const FConstraintInstanceBase&) = default;
-    FConstraintInstanceBase& operator=(const FConstraintInstanceBase&) = default;
-    FConstraintInstanceBase(FConstraintInstanceBase&&) = default;
-    FConstraintInstanceBase& operator=(FConstraintInstanceBase&&) = default;
-};
-
-
-struct FConstraintInstance : public FConstraintInstanceBase
-{
-    DECLARE_STRUCT(FConstraintInstance, FConstraintInstanceBase)
+    DECLARE_STRUCT(FConstraintInstance, FConstraintInstanceCore)
 
 public:
     FConstraintInstance() = default;
@@ -38,8 +30,12 @@ public:
 
 public:
     // TODO: Implements This
-    void TermConstraint()
-    {
-        UE_LOG(ELogLevel::Warning, TEXT("TermConstraint is not implemented yet."));
-    }
+    void TermConstraint();
+
+    void InitConstraint(const UConstraintSetup* Setup, FBodyInstance* InBody1, FBodyInstance* InBody2, USkeletalMeshComponent* OwnerComp, bool bInSimulatePhysics);
+
+    FBodyInstance* Body1 = nullptr;
+    FBodyInstance* Body2 = nullptr;
+    physx::PxJoint* Joint = nullptr;
+    bool bInitialized = false; 
 };

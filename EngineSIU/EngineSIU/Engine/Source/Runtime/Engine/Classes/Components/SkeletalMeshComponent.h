@@ -6,6 +6,8 @@
 #include "Template/SubclassOf.h"
 #include "Animation/AnimNodeBase.h"
 
+#include "PxPhysicsAPI.h"
+
 struct FConstraintInstance;
 class UAnimSequence;
 class USkeletalMesh;
@@ -13,6 +15,18 @@ struct FAnimNotifyEvent;
 class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
+class UPhysicsAsset;
+
+struct RagdollBone
+{
+    FName name;
+    physx::PxVec3 offset;                // 부모로부터의 위치
+    physx::PxVec3 halfSize;              // Capsule or box 크기
+    int parentIndex;              // -1이면 루트
+    physx::PxRigidDynamic* body = nullptr;
+    physx::PxJoint* joint = nullptr;
+};
+
 
 enum class EAnimationMode : uint8
 {
@@ -132,11 +146,13 @@ public:
     TArray<FConstraintInstance*> Constraints;
 
     // 물리 상태 생성/파괴
+    //virtual bool ShouldCreatePhysicsState() const;
     virtual void CreatePhysicsState() override;
     virtual void DestroyPhysicsState() override;
 
 protected:
     void ClearPhysicsState();
+
     void InstantiatePhysicsAsset();
 
     void SyncBodiesToBones();
@@ -166,4 +182,39 @@ public:
     UClass* GetAnimClass();
     
     void SetAnimInstanceClass(class UClass* NewClass);
+
+private:
+    UPROPERTY(
+        EditAnywhere | LuaReadOnly, ({ .Category = "RagDoll" }),
+        bool, bRagDollSimulating, ;
+    )
+
+    TArray<RagdollBone> RagdollBones;
+
+public:
+    void SetRagDollSimulating(bool bInRagDollSimulating){ bRagDollSimulating = bInRagDollSimulating; }
+    bool IsRagDollSimulating() const { return bRagDollSimulating; }
+
+    void InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton);
+    void DestroyRagDoll();
+
+protected:
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+    void PopulatePhysicsAssetFromSkeleton(UPhysicsAsset* PhysicsAssetToPopulate, const FReferenceSkeleton& InRefSkeleton);
+    void CreateRagDollFromPhysicsAsset();
+
+private:
+    const float DefaultBodyMass = 0.05f;
+    const float DefaultRadius = 2.f;                 // 기본 반지름
+    const float MinCylinderLength = 0.1f;             // 캡슐의 원통 부분 최소 길이
+    const float DefaultBoneLength = 20.0f;            // 자식이 없거나 길이가 매우 짧은 본의 기본 길이
+    float CalculatedRadius = 5.f; //DefaultRadius
+    float CalculatedCylinderLength = 20.f; // 원통 부분의 길이 (DefaultBoneLength)
+
+    void CalculateElement(UBodySetup* InBodySetup, int32 BoneIndex);
+
+    physx::PxTransform ToPxTransform(const FTransform& UnrealTransform);
+
 };

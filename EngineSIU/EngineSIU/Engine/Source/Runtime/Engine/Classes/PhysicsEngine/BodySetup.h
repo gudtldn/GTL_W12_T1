@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <PxFiltering.h>
 
 #include "AggregateGeom.h"
@@ -44,6 +44,9 @@ public:
     virtual ~UBodySetup() override = default;
 
 public:
+    physx::PxFilterData CreateFilterData() const;
+
+public:
     UPROPERTY(
         EditAnywhere, ({ .Category = "BodySetup", .DisplayName = "Primitives" }),
         FKAggregateGeom, AggGeom, ;
@@ -64,5 +67,12 @@ public:
         FCollisionResponseContainer, CollisionResponses, ;
     )
 
-    physx::PxFilterData CreateFilterData() const;
+    UPROPERTY
+    (bool, bOverrideMass)
+    UPROPERTY
+    (float, Density)
+    UPROPERTY
+    (float, LinearDamping)
+    UPROPERTY
+    (float, AngularDamping)
 };

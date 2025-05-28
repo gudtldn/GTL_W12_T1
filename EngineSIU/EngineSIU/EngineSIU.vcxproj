@@ -135,6 +135,8 @@
     <Message Text="--- Copy Library Tasks Finished ---" Importance="high" />
   </Target>
   <ItemGroup>
+    <ClCompile Include="ConstraintInstance.cpp" />
+    <ClCompile Include="ConstraintSetupCore.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\Fish.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\GoalPlatformActor.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\ItemActor.cpp" />
@@ -300,12 +302,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocity.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.cpp"/>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.cpp"/>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.cpp"/>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\FSimulationEventCallback.cpp"/>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.cpp"/>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ParticleHelper.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleSystemRender.cpp" />
@@ -375,6 +377,9 @@
     <ClCompile Include="SoundManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConstraintInstanceCore.h" />
+    <ClInclude Include="ConstraintSetup.h" />
+    <ClInclude Include="ConstraintSetupCore.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\Fish.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\GoalPlatformActor.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\ItemActor.h" />
@@ -588,20 +593,20 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocity.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstanceCore.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h"/>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstanceCore.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintInstance.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConvexElem.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.h"/>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConvexElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\FSimulationEventCallback.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h"/>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphylElem.h"/>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphylElem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ParticleHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ReferenceSkeleton.h" />
@@ -772,7 +777,7 @@
     <None Include="Shaders\SlateShader.hlsl" />
     <None Include="Shaders\StaticMeshVertexShader.hlsl" />
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
-    <None Include="Shaders\UpSampleShader.hlsl"/>
+    <None Include="Shaders\UpSampleShader.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -1,10 +1,9 @@
-﻿// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeConst
 // ReSharper disable CppClangTidyCppcoreguidelinesProTypeStaticCastDowncast
 #include "BodyInstance.h"
 #include "PhysX/PhysX.h"
 
 #include "BodySetup.h"
-#include "PxPhysicsAPI.h"
 #include "Components/PrimitiveComponent.h"
 #include "extensions/PxRigidBodyExt.h"
 
@@ -55,6 +54,10 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
         {
             Shape->setSimulationFilterData(ShapeFilterData);
             Shape->setQueryFilterData(ShapeFilterData);
+
+            Shape->setContactOffset(1.0f);
+            Shape->setRestOffset(-0.1f);
+
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -111,8 +114,23 @@ PxShape* FBodyInstance::CreateShapeFromBox(const FKBoxElem& BoxElem, const PxMat
 
 PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const PxMaterial& Material) const
 {
+
+    // OwnerComponent와 BodySetup에서 본 이름을 가져와 로그에 포함하면 디버깅에 매우 유용합니다.
+    // FName BoneName = (OwnerComponent && OwnerComponent->GetBodySetup() == BodySetupRef) ? AssociatedBoneName : TEXT("UnknownBone");
+    // 위 방법은 FBodyInstance가 UBodySetup*나 BoneName을 직접 알 수 있도록 수정해야 가능.
+    // 임시로 SphylElem의 값만 출력
+
+    float Radius = SphylElem.Radius;
+    float HalfHeight = SphylElem.Length / 2.0f; // FKSphylElem.Length가 원통 부분의 길이라고 가정
+
+    // PhysX는 Radius > 0, HalfHeight >= 0 을 요구합니다.
+    if (Radius <= 0.0f || HalfHeight < 0.0f) // HalfHeight는 0일 수 있지만, Radius는 0보다 커야 함
+    {
+        return nullptr;
+    }
+
     PxShape* Shape = FPhysX::GPhysics->createShape(
-        PxCapsuleGeometry(SphylElem.Radius, SphylElem.Length / 2.0f), // 캡슐 지오메트리
+        PxCapsuleGeometry(Radius, HalfHeight),
         Material,
         true,
         PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE
@@ -121,19 +139,16 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
     if (Shape)
     {
         const FQuat EngineQuat = SphylElem.Rotation.Quaternion();
-        // PhysX 캡슐은 X축 기준이므로, 필요시 엔진 좌표계에 맞춰 추가 회전 적용
-        // 예: EngineQuat = EngineQuat * FQuat(FVector::UpVector, -PI / 2.0f) * FQuat(FVector::RightVector, PI / 2.0f);
-
         const PxQuat PxQuatRotation(EngineQuat.X, EngineQuat.Y, EngineQuat.Z, EngineQuat.W);
         const PxTransform LocalPose(
             PxVec3(SphylElem.Center.X, SphylElem.Center.Y, SphylElem.Center.Z),
             PxQuatRotation
         );
+
         Shape->setLocalPose(LocalPose);
     }
     return Shape;
 }
-
 PxShape* FBodyInstance::CreateShapeFromConvex(const FKConvexElem& ConvexElem, const PxMaterial& Material) const
 {
     return nullptr;
@@ -154,21 +169,16 @@ FBodyInstance::~FBodyInstance()
 FBodyInstance::FBodyInstance(FBodyInstance&& Other) noexcept = default;
 FBodyInstance& FBodyInstance::operator=(FBodyInstance&& Other) noexcept = default;
 
-void FBodyInstance::InitBody(
-    UPrimitiveComponent* InOwnerComponent, const UBodySetup* InBodySetup, const FTransform& InTransform, bool bInSimulatePhysics
-)
+void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodySetup* InBodySetup, const FTransform& InTransform, bool bInSimulatePhysics)
 {
     if (!(FPhysX::GPhysics && FPhysX::GScene && FPhysX::GMaterial && InBodySetup && InOwnerComponent))
     {
-        // UE_LOG: 필수 객체 없음
         return;
     }
 
-    // 이미 초기화되었다면 기존 것 해제
     if (RigidActor)
     {
         TermBody();
-        // PImpl은 유지하고 내부 RigidActor만 새로 만듦
         RigidActor = nullptr; // 명시적 초기화
     }
 
@@ -196,7 +206,6 @@ void FBodyInstance::InitBody(
 
     if (!RigidActor)
     {
-        // UE_LOG: RigidActor 생성 실패
         return;
     }
 
@@ -207,16 +216,32 @@ void FBodyInstance::InitBody(
 
     if (bIsSimulatingPhysics && RigidActor->is<PxRigidDynamic>())
     {
-        // TODO: BodySetupRef 또는 OwnerComponent에서 질량/관성 관련 데이터 가져오기
-        float Mass = 0.001f;
-        if (InBodySetup && InBodySetup->Mass > 0)
+        PxRigidDynamic* DynActor = static_cast<PxRigidDynamic*>(RigidActor);
+
+        float MassToUse = 10.f;
+        if (InBodySetup)
         {
-            Mass = InBodySetup->Mass; 
+            if (InBodySetup->bOverrideMass && InBodySetup->Mass > 0.0f)
+            {
+                MassToUse = InBodySetup->Mass;
+            }
         }
-        PxRigidBodyExt::updateMassAndInertia(*static_cast<PxRigidDynamic*>(RigidActor), Mass);
+        if (MassToUse > 0.0f)
+        {
+            PxRigidBodyExt::setMassAndUpdateInertia(*DynActor, MassToUse);
+        }
+        DynActor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false); // 코스트가 높음.
+        DynActor->setMaxDepenetrationVelocity(8.0f);
+        DynActor->setLinearDamping(InBodySetup->LinearDamping);
+        DynActor->setAngularDamping(InBodySetup->AngularDamping);
+        DynActor->setMaxLinearVelocity(30.f);
+        DynActor->setMaxAngularVelocity(30.f);
+        DynActor->setSolverIterationCounts(12, 1);
+        SetLinearVelocity(FVector(0, 0, 0), false);
+        SetAngularVelocity(FVector(0, 0, 0), false);
     }
 
-    FPhysX::GScene->addActor(*(RigidActor));
+    FPhysX::GScene->addActor(*RigidActor);
 }
 
 void FBodyInstance::TermBody()
@@ -225,7 +250,7 @@ void FBodyInstance::TermBody()
     {
         if (FPhysX::GScene)
         {
-            FPhysX::GScene->removeActor(*(RigidActor));
+            FPhysX::GScene->removeActor(*RigidActor);
         }
         RigidActor->release();
         RigidActor = nullptr;

@@ -1261,12 +1261,6 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\CameraEffectRenderPass.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\CameraEffectRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Renderer\CompositingPass.cpp">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClCompile>
@@ -1291,12 +1285,6 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderPass.h">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\FogRenderPass.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\FogRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Renderer\GizmoRenderPass.cpp">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClCompile>
@@ -1310,12 +1298,6 @@
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClCompile>
     <ClInclude Include="Engine\Source\Runtime\Renderer\LineRenderPass.h">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.cpp">
-      <Filter>Engine\Source\Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.h">
       <Filter>Engine\Source\Runtime\Renderer</Filter>
     </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Renderer\Renderer.cpp">
@@ -1694,6 +1676,18 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAcceleration.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAccelerationBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcess\CameraEffectRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcess\DepthOfFieldRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcess\FogRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessCompositingPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessRenderPass.cpp" />
+    <ClCompile Include="ConstraintInstance.cpp" />
+    <ClCompile Include="ConstraintSetupCore.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1798,6 +1792,27 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Velocity\ParticleModuleVelocityOverLife.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAcceleration.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAccelerationBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodyInstanceCore.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetupCore.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConvexElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysicsAsset.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\PhysX\PhysX.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphylElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\CameraEffectRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\DepthOfFieldRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\FogRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessCompositingPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcess\PostProcessRenderPass.h" />
+    <ClInclude Include="ConstraintSetup.h" />
+    <ClInclude Include="ConstraintSetupCore.h" />
+    <ClInclude Include="ConstraintInstanceCore.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />
@@ -1830,5 +1845,7 @@
     <None Include="Shaders\DepthCubeMapVS.hlsl" />
     <None Include="Shaders\DepthOnlyVS.hlsl" />
     <None Include="Shaders\PointLightCubemapGS.hlsl" />
+    <None Include="Shaders\DownSampleShader.hlsl" />
+    <None Include="Shaders\UpSampleShader.hlsl" />
   </ItemGroup>
 </Project>
