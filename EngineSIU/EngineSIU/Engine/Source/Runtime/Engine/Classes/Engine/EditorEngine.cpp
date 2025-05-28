@@ -182,6 +182,8 @@ void UEditorEngine::StartPIE()
     FPhysX::StartSimulatePVD();
 
     PIEWorld->BeginPlay();
+
+
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }
@@ -335,6 +337,8 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
 
 void UEditorEngine::BindEssentialObjects()
 {
+    FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+
     for (const auto Iter: TObjectRange<APlayer>())
     {
         if (Iter->GetWorld() == ActiveWorld)
@@ -347,19 +351,24 @@ void UEditorEngine::BindEssentialObjects()
     //실수로 안만들면 넣어주기
     if (ActiveWorld->GetMainPlayer() == nullptr)
     {
+        
         APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
+        TempPlayer->SetActorLocation(FVector(-230,0,30));
         TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
         TempPlayer->SetActorTickInEditor(false);
         ActiveWorld->SetMainPlayer(TempPlayer);
     }
     
     //무조건 PIE들어갈때 만들어주기
-    APlayerController* PlayerController = ActiveWorld->SpawnActor<APlayerController>();
-    PlayerController->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
-    PlayerController->SetActorTickInEditor(false);
-    ActiveWorld->SetPlayerController(PlayerController);
-    
-    ActiveWorld->GetPlayerController()->Possess(ActiveWorld->GetMainPlayer());
+  APlayerController* PlayerController = ActiveWorld->SpawnActor<APlayerController>();
+
+
+
+  PlayerController->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
+  PlayerController->SetActorTickInEditor(false);
+  ActiveWorld->SetPlayerController(PlayerController);
+  
+  ActiveWorld->GetPlayerController()->Possess(ActiveWorld->GetMainPlayer());
 }
 
 void UEditorEngine::EndPIE()
