@@ -198,8 +198,6 @@ public:
     void InitializeRagDoll(const FReferenceSkeleton& InRefSkeleton);
     void DestroyRagDoll();
 
-    void UpdateRagdoll();
-
 protected:
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -209,13 +207,11 @@ protected:
 
 private:
     const float DefaultBodyMass = 0.05f;
-    const float MinRadius = 0.1f;                     // 캡슐의 최소 반지름
-    const float MaxRadius = 3.0f;                     // 캡슐의 최대 반지름
-    const float DefaultRadius = 0.5f;                 // 기본 반지름
-    const float MinCylinderLength = 0.01f;             // 캡슐의 원통 부분 최소 길이
-    const float DefaultBoneLength = 2.0f;            // 자식이 없거나 길이가 매우 짧은 본의 기본 길이
-    float CalculatedRadius = 0.5f; //DefaultRadius
-    float CalculatedCylinderLength = 2.f; // 원통 부분의 길이 (DefaultBoneLength)
+    const float DefaultRadius = 2.f;                 // 기본 반지름
+    const float MinCylinderLength = 0.1f;             // 캡슐의 원통 부분 최소 길이
+    const float DefaultBoneLength = 20.0f;            // 자식이 없거나 길이가 매우 짧은 본의 기본 길이
+    float CalculatedRadius = 5.f; //DefaultRadius
+    float CalculatedCylinderLength = 20.f; // 원통 부분의 길이 (DefaultBoneLength)
 
     void CalculateElement(UBodySetup* InBodySetup, int32 BoneIndex);
 

@@ -51,6 +51,7 @@ void FPhysX::Initialize()
     SceneDesc.flags |= PxSceneFlag::eENABLE_ACTIVE_ACTORS;
     SceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
     SceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+
     GScene = GPhysics->createScene(SceneDesc);
 
 #ifdef _DEBUG

@@ -30,8 +30,8 @@ void FConstraintInstance::InitConstraint(
     PxTransform PLocalFrame1 = Setup->LocalFrame1;
     PxTransform PLocalFrame2 = Setup->LocalFrame2;
     PxD6Joint* D6Joint = PxD6JointCreate(*GPhysics,
-        PActor1, PLocalFrame1,
-        PActor2, PLocalFrame2
+        PActor2, PLocalFrame2,
+        PActor1, PLocalFrame1
     );
 
     if (!D6Joint)
@@ -55,16 +55,18 @@ void FConstraintInstance::InitConstraint(
     float Swing2LimitRad = FMath::DegreesToRadians(Setup->AngularLimits.Swing2LimitAngle);
     D6Joint->setSwingLimit(PxJointLimitCone(Swing1LimitRad, Swing2LimitRad));
 
-    if (Setup->bDisableCollisionBetweenConstrainedBodies)
-    {
-        D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
-    }
-    else
-    {
-        D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, true);
-    }
-
-    // TODO: 필요시 Drive, Breakable 등의 추가 설정
+    //if (Setup->bDisableCollisionBetweenConstrainedBodies)
+    //{
+    //    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+    //}
+    //else
+    //{
+    //    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, true);
+    //}
+    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+    D6Joint->setProjectionLinearTolerance(0.05f);
+    D6Joint->setProjectionAngularTolerance(FMath::DegreesToRadians(1.0f));
+    D6Joint->setConstraintFlag(PxConstraintFlag::ePROJECTION, true);
 
     Joint = D6Joint;
     bInitialized = true;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ShapeElem.h"
 #include "UObject/ObjectMacros.h"
 

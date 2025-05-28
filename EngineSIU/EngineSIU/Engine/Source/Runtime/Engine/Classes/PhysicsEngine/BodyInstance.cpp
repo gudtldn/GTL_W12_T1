@@ -47,6 +47,9 @@ void FBodyInstance::CreateShapesFromAggGeom(const UBodySetup* BodySetupRef, PxRi
     {
         if (PxShape* Shape = CreateShapeFromSphyl(SphylElem, *GMaterial))
         {
+            Shape->setContactOffset(0.02f);
+            Shape->setRestOffset(-0.1f);
+
             OutActor->attachShape(*Shape);
             Shape->release();
         }
@@ -106,31 +109,13 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
     // 위 방법은 FBodyInstance가 UBodySetup*나 BoneName을 직접 알 수 있도록 수정해야 가능.
     // 임시로 SphylElem의 값만 출력
 
-    // 첫 번째 UE_LOG 대신 std::cout 사용 (멤버 직접 출력)
-    std::cout << "CreateShapeFromSphyl: Radius=" << std::fixed << std::setprecision(5) << SphylElem.Radius
-        << ", Length (Cylinder)=" << SphylElem.Length
-        << ", Center=(" << SphylElem.Center.X << ", " << SphylElem.Center.Y << ", " << SphylElem.Center.Z << ")"
-        << ", Rotation=(P=" << SphylElem.Rotation.Pitch << ", Y=" << SphylElem.Rotation.Yaw << ", R=" << SphylElem.Rotation.Roll << ")"
-        // 만약 Rotation이 쿼터니언이라면:
-        // << ", Rotation=(X=" << SphylElem.Rotation.X << ", Y=" << SphylElem.Rotation.Y << ", Z=" << SphylElem.Rotation.Z << ", W=" << SphylElem.Rotation.W << ")"
-        << std::endl;
-
-
     float Radius = SphylElem.Radius;
     float HalfHeight = SphylElem.Length / 2.0f; // FKSphylElem.Length가 원통 부분의 길이라고 가정
 
     // PhysX는 Radius > 0, HalfHeight >= 0 을 요구합니다.
     if (Radius <= 0.0f || HalfHeight < 0.0f) // HalfHeight는 0일 수 있지만, Radius는 0보다 커야 함
     {
-
-        std::cerr << "!!! INVALID SPHYL PARAMS !!! Radius=" << std::fixed << std::setprecision(5) << Radius
-            << ", HalfHeight=" << HalfHeight << ". Shape creation WILL FAIL."
-            << std::endl;
-        // 여기서 에러를 명확히 인지하고, 문제가 되는 SphylElem의 소스(어떤 본에서 왔는지)를 추적해야 합니다.
-        // 임시 방편으로 NULL을 반환하거나, 아주 작은 기본값으로 시도해볼 수 있지만, 근본 원인을 찾아야 합니다.
-        return nullptr; // 또는 기본값으로 강제 생성 시도 (하지만 이는 문제를 가릴 수 있음)
-        // if (Radius <= 0.0f) Radius = 0.001f;
-        // if (HalfHeight < 0.0f) HalfHeight = 0.0f;
+        return nullptr;
     }
 
     PxShape* Shape = GPhysics->createShape(
@@ -148,10 +133,8 @@ PxShape* FBodyInstance::CreateShapeFromSphyl(const FKSphylElem& SphylElem, const
             PxVec3(SphylElem.Center.X, SphylElem.Center.Y, SphylElem.Center.Z),
             PxQuatRotation
         );
+
         Shape->setLocalPose(LocalPose);
-    }
-    else {
-        std::cout << "GPhysics->createShape returned NULL for Sphyl. Params: R="<< Radius<< "HH = "<< HalfHeight << std::endl;
     }
     return Shape;
 }
@@ -194,16 +177,13 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
 {
     if (!(GPhysics && GScene && GMaterial && InBodySetup && InOwnerComponent))
     {
-        // UE_LOG: 필수 객체 없음
         return;
     }
 
-    // 이미 초기화되었다면 기존 것 해제
     if (RigidActor)
     {
         TermBody();
-        // 은 유지하고 내부 RigidActor만 새로 만듦
-        RigidActor = nullptr; // 명시적 초기화
+        RigidActor = nullptr;
     }
 
     OwnerComponent = InOwnerComponent;
@@ -222,6 +202,7 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
     if (bIsSimulatingPhysics)
     {
         RigidActor = GPhysics->createRigidDynamic(PxPose);
+
     }
     else
     {
@@ -230,24 +211,36 @@ void FBodyInstance::InitBody(UPrimitiveComponent* InOwnerComponent, const UBodyS
 
     if (!RigidActor)
     {
-        // UE_LOG: RigidActor 생성 실패
         return;
     }
 
-    // userData에 FBodyInstance* this를 저장 (PhysX 콜백 등에서 다시 FBodyInstance를 얻기 위함)
     RigidActor->userData = this;
 
     CreateShapesFromAggGeom(InBodySetup, RigidActor);
 
     if (bIsSimulatingPhysics && RigidActor->is<PxRigidDynamic>())
     {
-        // TODO: BodySetupRef 또는 OwnerComponent에서 질량/관성 관련 데이터 가져오기
-        constexpr float Mass = 10.0f; // TODO: 예시 질량
-        if (InBodySetup /* && BodySetupRef->Mass > 0 */)
+        PxRigidDynamic* DynActor = static_cast<PxRigidDynamic*>(RigidActor);
+
+        float MassToUse = 10.f;
+        if (InBodySetup)
         {
-            /* Mass = BodySetupRef->Mass; */
+            if (InBodySetup->bOverrideMass && InBodySetup->Mass > 0.0f)
+            {
+                MassToUse = InBodySetup->Mass;
+            }
         }
-        PxRigidBodyExt::updateMassAndInertia(*static_cast<PxRigidDynamic*>(RigidActor), Mass);
+
+        if (MassToUse > 0.0f)
+        {
+            PxRigidBodyExt::setMassAndUpdateInertia(*DynActor, MassToUse);
+        }
+        DynActor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true); // 코스트가 높음.
+        DynActor->setMaxDepenetrationVelocity(5.0f);
+        DynActor->setLinearDamping(InBodySetup->LinearDamping);
+        DynActor->setAngularDamping(InBodySetup->AngularDamping);
+        DynActor->setMaxLinearVelocity(30.f);
+        DynActor->setMaxAngularVelocity(30.f);
     }
 
     GScene->addActor(*RigidActor);
@@ -433,7 +426,6 @@ bool FBodyInstance::IsSimulatingPhysics() const
 {
     return bIsSimulatingPhysics;
 }
-
 
 void FBodyInstance::SetUserData(void* InUserData)
 {
